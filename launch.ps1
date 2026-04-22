@@ -1,9 +1,9 @@
 # Nixxis Maintenance Tool — Remote Launcher
-# Usage: irm "https://raw.githubusercontent.com/YOUR_ORG/NixxisUI/main/launch.ps1" | iex
+# Usage: irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/launch.ps1" | iex
 #
-# Replace YOUR_ORG with the actual GitHub username/org before publishing.
+# Replace repnixxis with the actual GitHub username/org before publishing.
 
-$repoRaw = "https://raw.githubusercontent.com/YOUR_ORG/NixxisUI/main/NixxisUI.ps1"
+$repoRaw = "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/NixxisUI.ps1"
 
 Write-Host ""
 Write-Host "  Nixxis Maintenance Tool" -ForegroundColor Cyan

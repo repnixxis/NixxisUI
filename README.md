@@ -7,10 +7,10 @@ A WPF/XAML GUI for Nixxis update and deployment operations, inspired by [Chris T
 Open **PowerShell as Administrator** and run:
 
 ```powershell
-irm "https://raw.githubusercontent.com/YOUR_ORG/NixxisUI/main/launch.ps1" | iex
+irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/launch.ps1" | iex
 ```
 
-> Replace `YOUR_ORG` with your actual GitHub username or organization.
+> Replace `repnixxis` with your actual GitHub username or organization.
 
 ## Features
 
@@ -53,7 +53,7 @@ NixxisUI/
 
 1. Create a **public** GitHub repository named `NixxisUI`
 2. Push all files
-3. Replace `YOUR_ORG` in both `launch.ps1` and `NixxisUI.ps1` with your GitHub username
+3. Replace `repnixxis` in both `launch.ps1` and `NixxisUI.ps1` with your GitHub username
 4. Share the `irm` command above
 
 ## Paths Used

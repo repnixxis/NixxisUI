@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 # NixxisUI.ps1 - WPF GUI for Nixxis Maintenance Operations
-# Invoke with: irm "https://raw.githubusercontent.com/YOUR_ORG/NixxisUI/main/NixxisUI.ps1" | iex
+# Invoke with: irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/NixxisUI.ps1" | iex
 
 #region --- Self-Elevation ---
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -10,7 +10,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
         Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptSource`""
     } else {
         # Launched via irm | iex — re-launch with the URL
-        $launchUrl = "https://raw.githubusercontent.com/YOUR_ORG/NixxisUI/main/NixxisUI.ps1"
+        $launchUrl = "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/NixxisUI.ps1"
         Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm '$launchUrl' | iex`""
     }
     exit
