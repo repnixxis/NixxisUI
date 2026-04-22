@@ -1,7 +1,9 @@
 # Nixxis Maintenance Tool — Remote Launcher
-# Usage: irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/launch.ps1" | iex
-#
-# Replace repnixxis with the actual GitHub username/org before publishing.
+# Usage (PowerShell 5.1 / Windows Server — forces TLS 1.2):
+#   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/launch.ps1" | iex
+
+# Force TLS 1.2 — PowerShell 5.1 defaults to TLS 1.0, which GitHub rejects
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $repoRaw = "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/NixxisUI.ps1"
 
@@ -17,5 +19,6 @@ try {
     Write-Host "ERROR: Failed to load NixxisUI.ps1" -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
     Write-Host ""
-    Write-Host "Check that the GitHub repo is public and the URL is correct." -ForegroundColor Yellow
+    Write-Host "If you see an SSL/TLS error, run this first:" -ForegroundColor Yellow
+    Write-Host "  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12" -ForegroundColor Cyan
 }

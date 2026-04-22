@@ -7,10 +7,10 @@ A WPF/XAML GUI for Nixxis update and deployment operations, inspired by [Chris T
 Open **PowerShell as Administrator** and run:
 
 ```powershell
-irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/launch.ps1" | iex
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/launch.ps1" | iex
 ```
 
-> Replace `repnixxis` with your actual GitHub username or organization.
+> The `[Net.ServicePointManager]` line is required on **Windows Server / PowerShell 5.1** — it defaults to TLS 1.0 which GitHub rejects. This is harmless to include on all systems.
 
 ## Features
 
