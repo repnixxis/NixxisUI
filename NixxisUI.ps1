@@ -1,15 +1,15 @@
 #Requires -Version 5.1
 # NixxisUI.ps1 - WPF GUI for Nixxis Maintenance Operations
-# Invoke with: irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/NixxisUI.ps1" | iex
+# Invoke with:
+#   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#   irm "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/NixxisUI.ps1" | iex
 
 #region --- Self-Elevation ---
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     $scriptSource = $MyInvocation.MyCommand.Path
     if ($scriptSource) {
-        # Launched from file — re-launch elevated
         Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptSource`""
     } else {
-        # Launched via irm | iex — re-launch with the URL
         $launchUrl = "https://raw.githubusercontent.com/repnixxis/NixxisUI/main/NixxisUI.ps1"
         Start-Process powershell.exe -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; irm '$launchUrl' | iex`""
     }
@@ -22,22 +22,20 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-#region --- XAML Layout ---
+#region --- XAML ---
 [xml]$xaml = @'
 <Window
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Nixxis Maintenance Tool"
-    Height="720" Width="1150"
-    MinHeight="600" MinWidth="950"
+    Height="740" Width="1160"
+    MinHeight="620" MinWidth="960"
     WindowStartupLocation="CenterScreen"
     Background="#1e1e1e"
     FontFamily="Segoe UI"
-    FontSize="13"
-    WindowStyle="SingleBorderWindow">
+    FontSize="13">
 
     <Window.Resources>
-        <!-- Primary blue button -->
         <Style x:Key="PrimaryBtn" TargetType="Button">
             <Setter Property="Background" Value="#0078d4"/>
             <Setter Property="Foreground" Value="White"/>
@@ -54,29 +52,28 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#1489e0"/></Trigger>
                             <Trigger Property="IsPressed"   Value="True"><Setter TargetName="bd" Property="Background" Value="#005fa3"/></Trigger>
-                            <Trigger Property="IsEnabled"   Value="False"><Setter TargetName="bd" Property="Background" Value="#3a3a3a"/><Setter Property="Foreground" Value="#666666"/></Trigger>
+                            <Trigger Property="IsEnabled"   Value="False">
+                                <Setter TargetName="bd" Property="Background" Value="#3a3a3a"/>
+                                <Setter Property="Foreground" Value="#555"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- Muted action button -->
         <Style x:Key="ActionBtn" TargetType="Button" BasedOn="{StaticResource PrimaryBtn}">
             <Setter Property="Background" Value="#2d2d30"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
         </Style>
-        <!-- Green button -->
         <Style x:Key="GreenBtn" TargetType="Button" BasedOn="{StaticResource ActionBtn}">
             <Setter Property="Background" Value="#1e6e42"/>
         </Style>
-        <!-- GroupBox -->
         <Style TargetType="GroupBox">
             <Setter Property="Foreground" Value="#9cdcfe"/>
             <Setter Property="BorderBrush" Value="#3a3a3a"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
             <Setter Property="Padding" Value="8"/>
         </Style>
-        <!-- TextBox -->
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="#3c3c3c"/>
             <Setter Property="Foreground" Value="#d4d4d4"/>
@@ -86,19 +83,16 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <Setter Property="Margin" Value="2,2"/>
             <Setter Property="CaretBrush" Value="White"/>
         </Style>
-        <!-- RadioButton -->
         <Style TargetType="RadioButton">
             <Setter Property="Foreground" Value="#d4d4d4"/>
             <Setter Property="Margin" Value="0,4"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <!-- Label -->
         <Style TargetType="Label">
             <Setter Property="Foreground" Value="#cccccc"/>
             <Setter Property="Padding" Value="2,2"/>
             <Setter Property="FontSize" Value="11"/>
         </Style>
-        <!-- Separator -->
         <Style TargetType="Separator">
             <Setter Property="Background" Value="#3a3a3a"/>
             <Setter Property="Margin" Value="0,5"/>
@@ -112,14 +106,14 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <RowDefinition Height="38"/>
         </Grid.RowDefinitions>
 
-        <!-- ===== HEADER ===== -->
+        <!-- HEADER -->
         <Border Grid.Row="0" Background="#252526" BorderBrush="#0078d4" BorderThickness="0,0,0,2">
             <Grid Margin="14,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="⚙" Foreground="#0078d4" FontSize="26" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="&#9881;" Foreground="#0078d4" FontSize="26" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Nixxis Maintenance Tool" Foreground="White" FontSize="17" FontWeight="SemiBold"/>
-                        <TextBlock Text="Automated Update &amp; Deployment  •  v1.4" Foreground="#777" FontSize="11"/>
+                        <TextBlock Text="Automated Update &amp; Deployment  |  v1.4" Foreground="#777" FontSize="11"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
@@ -129,15 +123,15 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                             <TextBlock x:Name="tbServiceStatus" Text="Service: Unknown" Foreground="#aaa" FontSize="12" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Button x:Name="btnRefreshStatus" Content="↺  Refresh" Style="{StaticResource ActionBtn}" Width="90" Height="30" FontSize="12"/>
+                    <Button x:Name="btnRefreshStatus" Content="Refresh" Style="{StaticResource ActionBtn}" Width="80" Height="30" FontSize="12"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ===== MAIN CONTENT ===== -->
+        <!-- MAIN -->
         <Grid Grid.Row="1" Margin="8,8,8,4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="295"/>
+                <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="6"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -146,6 +140,24 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Margin="0,0,4,0">
 
+                    <!-- Working Directory -->
+                    <GroupBox Header="  Working Directory  ">
+                        <StackPanel>
+                            <TextBlock Foreground="#888" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,4"
+                                       Text="ZIPs and staged files are saved here. A dated subfolder (YYYYMMDD) is created automatically for each run."/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="tbWorkDir" Grid.Column="0" Text="C:\NixxisMaintenance\Update" FontSize="11"/>
+                                <Button x:Name="btnBrowseWork" Grid.Column="1" Content="..." Width="34" Height="28"
+                                        Style="{StaticResource ActionBtn}" Margin="4,2,0,2" FontSize="13"/>
+                            </Grid>
+                            <TextBlock x:Name="tbRunDir" Text="" Foreground="#569cd6" FontSize="10" Margin="2,4,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </GroupBox>
+
                     <!-- Source Mode -->
                     <GroupBox Header="  Source Mode  ">
                         <StackPanel>
@@ -153,7 +165,6 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                             <RadioButton x:Name="rbOnlineCustom" Content="Online — Custom URLs"/>
                             <RadioButton x:Name="rbOffline"      Content="Offline — Use local ZIP files"/>
 
-                            <!-- Custom URL panel -->
                             <StackPanel x:Name="pnlCustomUrls" Visibility="Collapsed" Margin="8,6,0,0">
                                 <Label Content="ClientProvisioning.zip URL (blank = auto):"/>
                                 <TextBox x:Name="tbCPUrl"  Text="" FontSize="11"/>
@@ -163,7 +174,6 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 <TextBox x:Name="tbNCSUrl" Text="" FontSize="11"/>
                             </StackPanel>
 
-                            <!-- Offline path panel -->
                             <StackPanel x:Name="pnlOfflinePath" Visibility="Collapsed" Margin="8,6,0,0">
                                 <Label Content="Folder containing the 3 ZIP files:"/>
                                 <Grid>
@@ -172,7 +182,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="tbOfflinePath" Grid.Column="0" Text="" FontSize="11"/>
-                                    <Button x:Name="btnBrowse" Grid.Column="1" Content="…" Width="34" Height="28"
+                                    <Button x:Name="btnBrowseOffline" Grid.Column="1" Content="..." Width="34" Height="28"
                                             Style="{StaticResource ActionBtn}" Margin="4,2,0,2" FontSize="13"/>
                                 </Grid>
                                 <TextBlock Foreground="#666" FontSize="10" TextWrapping="Wrap" Margin="2,2,0,0"
@@ -185,36 +195,36 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     <GroupBox Header="  Full Update  ">
                         <StackPanel>
                             <Button x:Name="btnRunFull"
-                                    Content="▶  Run Full Update"
+                                    Content="&#9658;  Run Full Update"
                                     Style="{StaticResource PrimaryBtn}"
                                     HorizontalAlignment="Stretch"
                                     Height="44" FontSize="15" FontWeight="SemiBold"/>
                             <TextBlock Foreground="#666" FontSize="10" TextWrapping="Wrap" Margin="4,5,4,0"
-                                       Text="Download → Extract → Stop Service → Backup → Cleanup → Deploy"/>
+                                       Text="Download  |  Extract  |  Stop Service  |  Backup  |  Cleanup  |  Deploy"/>
                         </StackPanel>
                     </GroupBox>
 
                     <!-- Individual Steps -->
                     <GroupBox Header="  Individual Steps  ">
                         <StackPanel>
-                            <Button x:Name="btnDownload"     Content="① Download ZIPs"              Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnPrepare"      Content="② Extract / Prepare Files"    Style="{StaticResource ActionBtn}" Height="33"/>
+                            <Button x:Name="btnDownload"     Content="&#9312; Download ZIPs"              Style="{StaticResource ActionBtn}" Height="33"/>
+                            <Button x:Name="btnPrepare"      Content="&#9313; Extract / Prepare Files"    Style="{StaticResource ActionBtn}" Height="33"/>
                             <Separator/>
-                            <Button x:Name="btnStopService"  Content="③ Stop Nixxis Service"        Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnBackup"       Content="④ Backup Current Nixxis"      Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnCleanup"      Content="⑤ Cleanup Old Files"          Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnDeploy"       Content="⑥ Deploy New Files"           Style="{StaticResource ActionBtn}" Height="33"/>
+                            <Button x:Name="btnStopService"  Content="&#9314; Stop Nixxis Service"        Style="{StaticResource ActionBtn}" Height="33"/>
+                            <Button x:Name="btnBackup"       Content="&#9315; Backup Current Nixxis"      Style="{StaticResource ActionBtn}" Height="33"/>
+                            <Button x:Name="btnCleanup"      Content="&#9316; Cleanup Old Files"          Style="{StaticResource ActionBtn}" Height="33"/>
+                            <Button x:Name="btnDeploy"       Content="&#9317; Deploy New Files"           Style="{StaticResource ActionBtn}" Height="33"/>
                             <Separator/>
-                            <Button x:Name="btnStartService" Content="Start Nixxis Service"         Style="{StaticResource GreenBtn}"  Height="33"/>
+                            <Button x:Name="btnStartService" Content="Start Nixxis Service"               Style="{StaticResource GreenBtn}"  Height="33"/>
                         </StackPanel>
                     </GroupBox>
 
                     <!-- Quick Actions -->
                     <GroupBox Header="  Quick Actions  ">
                         <UniformGrid Columns="1" Rows="3">
-                            <Button x:Name="btnOpenBackup"  Content="📂 Open Backup Folder" Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
-                            <Button x:Name="btnOpenLogs"    Content="📋 Open Logs Folder"   Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
-                            <Button x:Name="btnOpenNixxis"  Content="📁 Browse C:\Nixxis"   Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
+                            <Button x:Name="btnOpenWork"    Content="Open Working Directory" Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
+                            <Button x:Name="btnOpenLogs"    Content="Open Logs Folder"       Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
+                            <Button x:Name="btnOpenNixxis"  Content="Browse C:\Nixxis"        Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
                         </UniformGrid>
                     </GroupBox>
 
@@ -224,7 +234,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <!-- SPLITTER -->
             <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="#333"/>
 
-            <!-- RIGHT PANEL — Log -->
+            <!-- RIGHT PANEL - Log -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -234,8 +244,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 
                 <Border Grid.Row="0" Background="#252526" CornerRadius="4,4,0,0" Padding="10,6" Margin="0,0,0,1">
                     <Grid>
-                        <TextBlock Text="ACTIVITY LOG" Foreground="#9cdcfe" FontSize="11"
-                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Text="ACTIVITY LOG" Foreground="#9cdcfe" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button x:Name="btnClearLog" Content="Clear"    Style="{StaticResource ActionBtn}" Height="24" Width="55" FontSize="11" Margin="2,0"/>
                             <Button x:Name="btnSaveLog"  Content="Save Log" Style="{StaticResource ActionBtn}" Height="24" Width="68" FontSize="11" Margin="2,0"/>
@@ -260,21 +269,17 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     <ProgressBar x:Name="progressBar" Height="5" Value="0" Maximum="100"
                                  Background="#1a1a1a" Foreground="#0078d4" BorderThickness="0"/>
                     <Grid Margin="8,4">
-                        <TextBlock x:Name="tbStatus" Text="Ready — select a mode and click Run Full Update or an individual step."
-                                   Foreground="#666" FontSize="11"/>
-                        <TextBlock x:Name="tbElapsed" Text="" Foreground="#555" FontSize="11" HorizontalAlignment="Right"/>
+                        <TextBlock x:Name="tbStatus"  Text="Ready" Foreground="#666" FontSize="11"/>
+                        <TextBlock x:Name="tbElapsed" Text=""      Foreground="#555" FontSize="11" HorizontalAlignment="Right"/>
                     </Grid>
                 </StackPanel>
             </Grid>
         </Grid>
 
-        <!-- ===== FOOTER ===== -->
+        <!-- FOOTER -->
         <Border Grid.Row="2" Background="#252526" BorderBrush="#333" BorderThickness="0,1,0,0">
             <Grid Margin="12,0">
-                <TextBlock Text="Requires Administrator • Logs: C:\NixxisMaintenance\Logs • Backup: C:\NixxisMaintenance\BackUp"
-                           Foreground="#444" FontSize="10" VerticalAlignment="Center"/>
-                <TextBlock x:Name="tbLogFile" Text="" Foreground="#444" FontSize="10"
-                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                <TextBlock x:Name="tbLogFile" Text="Log: initializing..." Foreground="#444" FontSize="10" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>
@@ -283,160 +288,163 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 #endregion
 
 #region --- Build Window ---
-$reader   = [System.Xml.XmlNodeReader]::new($xaml)
-$window   = [Windows.Markup.XamlReader]::Load($reader)
+$reader  = [System.Xml.XmlNodeReader]::new($xaml)
+$window  = [Windows.Markup.XamlReader]::Load($reader)
+function ctrl($n) { $window.FindName($n) }
 
-# Helper to find controls
-function ctrl($name) { $window.FindName($name) }
+$rbOnlineAuto    = ctrl 'rbOnlineAuto'
+$rbOnlineCustom  = ctrl 'rbOnlineCustom'
+$rbOffline       = ctrl 'rbOffline'
+$pnlCustomUrls   = ctrl 'pnlCustomUrls'
+$pnlOfflinePath  = ctrl 'pnlOfflinePath'
+$tbCPUrl         = ctrl 'tbCPUrl'
+$tbCSUrl         = ctrl 'tbCSUrl'
+$tbNCSUrl        = ctrl 'tbNCSUrl'
+$tbOfflinePath   = ctrl 'tbOfflinePath'
+$tbWorkDir       = ctrl 'tbWorkDir'
+$tbRunDir        = ctrl 'tbRunDir'
+$btnBrowseWork   = ctrl 'btnBrowseWork'
+$btnBrowseOffline= ctrl 'btnBrowseOffline'
+$btnRunFull      = ctrl 'btnRunFull'
+$btnDownload     = ctrl 'btnDownload'
+$btnPrepare      = ctrl 'btnPrepare'
+$btnStopService  = ctrl 'btnStopService'
+$btnBackup       = ctrl 'btnBackup'
+$btnCleanup      = ctrl 'btnCleanup'
+$btnDeploy       = ctrl 'btnDeploy'
+$btnStartService = ctrl 'btnStartService'
+$btnRefreshStatus= ctrl 'btnRefreshStatus'
+$btnOpenWork     = ctrl 'btnOpenWork'
+$btnOpenLogs     = ctrl 'btnOpenLogs'
+$btnOpenNixxis   = ctrl 'btnOpenNixxis'
+$btnClearLog     = ctrl 'btnClearLog'
+$btnSaveLog      = ctrl 'btnSaveLog'
+$rtbLog          = ctrl 'rtbLog'
+$progressBar     = ctrl 'progressBar'
+$tbStatus        = ctrl 'tbStatus'
+$tbElapsed       = ctrl 'tbElapsed'
+$tbServiceStatus = ctrl 'tbServiceStatus'
+$ellServiceDot   = ctrl 'ellServiceDot'
+$tbLogFile       = ctrl 'tbLogFile'
 
-$rbOnlineAuto   = ctrl 'rbOnlineAuto'
-$rbOnlineCustom = ctrl 'rbOnlineCustom'
-$rbOffline      = ctrl 'rbOffline'
-$pnlCustomUrls  = ctrl 'pnlCustomUrls'
-$pnlOfflinePath = ctrl 'pnlOfflinePath'
-$tbCPUrl        = ctrl 'tbCPUrl'
-$tbCSUrl        = ctrl 'tbCSUrl'
-$tbNCSUrl       = ctrl 'tbNCSUrl'
-$tbOfflinePath  = ctrl 'tbOfflinePath'
-$btnBrowse      = ctrl 'btnBrowse'
-$btnRunFull     = ctrl 'btnRunFull'
-$btnDownload    = ctrl 'btnDownload'
-$btnPrepare     = ctrl 'btnPrepare'
-$btnStopService = ctrl 'btnStopService'
-$btnBackup      = ctrl 'btnBackup'
-$btnCleanup     = ctrl 'btnCleanup'
-$btnDeploy      = ctrl 'btnDeploy'
-$btnStartService= ctrl 'btnStartService'
-$btnRefreshStatus=ctrl 'btnRefreshStatus'
-$btnOpenBackup  = ctrl 'btnOpenBackup'
-$btnOpenLogs    = ctrl 'btnOpenLogs'
-$btnOpenNixxis  = ctrl 'btnOpenNixxis'
-$btnClearLog    = ctrl 'btnClearLog'
-$btnSaveLog     = ctrl 'btnSaveLog'
-$rtbLog         = ctrl 'rtbLog'
-$progressBar    = ctrl 'progressBar'
-$tbStatus       = ctrl 'tbStatus'
-$tbElapsed      = ctrl 'tbElapsed'
-$tbServiceStatus= ctrl 'tbServiceStatus'
-$ellServiceDot  = ctrl 'ellServiceDot'
-$tbLogFile      = ctrl 'tbLogFile'
+$allOpButtons = @($btnRunFull,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService)
 #endregion
 
 #region --- Shared State ---
 $sync = [hashtable]::Synchronized(@{
-    Queue    = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
-    Busy     = $false
-    Abort    = $false
-    LogLines = [System.Collections.Generic.List[string]]::new()
+    Queue   = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
+    Busy    = $false
+    WorkDir = 'C:\NixxisMaintenance\Update'
+    RunDir  = ''
+    LogLines= [System.Collections.Generic.List[string]]::new()
 })
 
-# Log paths
-$logDate    = Get-Date -Format 'yyyyMMdd_HHmmss'
-$logDir     = 'C:\NixxisMaintenance\Logs'
-$logFile    = Join-Path $logDir "NixxisMaintenance_$logDate.log"
+# Log file — in Logs folder alongside WorkDir's parent
+$logDate = Get-Date -Format 'yyyyMMdd_HHmmss'
+$logDir  = 'C:\NixxisMaintenance\Logs'
+$logFile = Join-Path $logDir "NixxisMaintenance_$logDate.log"
 if (-not (Test-Path $logDir)) { New-Item -Path $logDir -ItemType Directory -Force | Out-Null }
-$window.FindName('tbLogFile').Text = "Log: $logFile"
+$tbLogFile.Text = "Log: $logFile"
 
-# Color map: level → hex color
+# Color map
 $colorMap = @{
-    INFO    = '#c8c8c8'
-    OK      = '#4ec9b0'
-    WARN    = '#dcdcaa'
-    ERROR   = '#f44747'
-    CYAN    = '#9cdcfe'
-    MAGENTA = '#c586c0'
-    GRAY    = '#666666'
-    HEADER  = '#569cd6'
+    INFO    = '#c8c8c8'; OK     = '#4ec9b0'; WARN   = '#dcdcaa'
+    ERROR   = '#f44747'; CYAN   = '#9cdcfe'; MAGENTA= '#c586c0'
+    GRAY    = '#666666'; HEADER = '#569cd6'
+}
+
+# Brush cache
+$brushCache = @{}
+function Get-Brush($hex) {
+    if (-not $brushCache.ContainsKey($hex)) {
+        $brushCache[$hex] = [System.Windows.Media.BrushConverter]::new().ConvertFromString($hex)
+    }
+    $brushCache[$hex]
 }
 #endregion
 
-#region --- UI Helper Functions (must run on UI thread) ---
-function Write-UILog {
-    param([string]$Message, [string]$Level = 'INFO')
-    $ts  = Get-Date -Format 'HH:mm:ss'
-    $color = if ($colorMap.ContainsKey($Level)) { $colorMap[$Level] } else { '#c8c8c8' }
-    $full = "[$ts] $Message"
+#region --- UI Helpers (call ONLY from UI thread) ---
+
+# Add one log line directly to RTB — safe on UI thread, no Dispatcher needed
+function Add-LogEntry([string]$Message, [string]$Level = 'INFO') {
+    $ts   = Get-Date -Format 'HH:mm:ss'
+    $line = "[$ts] $Message"
+    $hex  = if ($colorMap.ContainsKey($Level)) { $colorMap[$Level] } else { '#c8c8c8' }
 
     # Persist to file
-    Add-Content -Path $logFile -Value $full -ErrorAction SilentlyContinue
-    $sync.LogLines.Add($full)
+    Add-Content -Path $logFile -Value $line -ErrorAction SilentlyContinue
+    $sync.LogLines.Add($line)
 
-    # UI — must be on dispatcher thread
-    $window.Dispatcher.Invoke([action]{
-        $doc  = $rtbLog.Document
-        $para = [System.Windows.Documents.Paragraph]::new()
-        $run  = [System.Windows.Documents.Run]::new($full)
-        $run.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString($color)
-        $para.Inlines.Add($run)
-        $para.Margin = [System.Windows.Thickness]::new(0)
-        $doc.Blocks.Add($para)
-        $rtbLog.ScrollToEnd()
-    })
+    # RTB — already on UI thread
+    $para          = [System.Windows.Documents.Paragraph]::new()
+    $para.Margin   = [System.Windows.Thickness]::new(0)
+    $run           = [System.Windows.Documents.Run]::new($line)
+    $run.Foreground= Get-Brush $hex
+    $para.Inlines.Add($run)
+    $rtbLog.Document.Blocks.Add($para)
+    $rtbLog.ScrollToEnd()
 }
 
-function Set-UIStatus {
-    param([string]$Text, [int]$Progress = -1)
-    $window.Dispatcher.Invoke([action]{
-        $tbStatus.Text = $Text
-        if ($Progress -ge 0) { $progressBar.Value = $Progress }
-    })
+function Set-Status([string]$Text, [int]$Pct = -1) {
+    $tbStatus.Text = $Text
+    if ($Pct -ge 0) { $progressBar.Value = $Pct }
 }
 
-function Set-UIBusy {
-    param([bool]$Busy)
-    $window.Dispatcher.Invoke([action]{
-        $sync.Busy = $Busy
-        $btnRunFull.IsEnabled     = -not $Busy
-        $btnDownload.IsEnabled    = -not $Busy
-        $btnPrepare.IsEnabled     = -not $Busy
-        $btnStopService.IsEnabled = -not $Busy
-        $btnBackup.IsEnabled      = -not $Busy
-        $btnCleanup.IsEnabled     = -not $Busy
-        $btnDeploy.IsEnabled      = -not $Busy
-        $btnStartService.IsEnabled= -not $Busy
-        if ($Busy) { $progressBar.Value = 0 }
-    })
+function Set-Busy([bool]$Busy) {
+    $sync.Busy = $Busy
+    foreach ($b in $allOpButtons) { $b.IsEnabled = -not $Busy }
+    if (-not $Busy) { $progressBar.Value = 100 }
 }
 
 function Update-ServiceStatus {
     $svc = Get-Service -Name 'crappserver' -ErrorAction SilentlyContinue
-    $window.Dispatcher.Invoke([action]{
-        if (-not $svc) {
-            $tbServiceStatus.Text     = 'Service: Not Found'
-            $ellServiceDot.Fill       = [System.Windows.Media.Brushes]::Gray
-        } elseif ($svc.Status -eq 'Running') {
-            $tbServiceStatus.Text     = "Service: Running"
-            $ellServiceDot.Fill       = [System.Windows.Media.BrushConverter]::new().ConvertFromString('#4ec9b0')
-        } else {
-            $tbServiceStatus.Text     = "Service: $($svc.Status)"
-            $ellServiceDot.Fill       = [System.Windows.Media.BrushConverter]::new().ConvertFromString('#dcdcaa')
-        }
-    })
+    if (-not $svc) {
+        $tbServiceStatus.Text = 'Service: Not Found'
+        $ellServiceDot.Fill   = Get-Brush '#888888'
+    } elseif ($svc.Status -eq 'Running') {
+        $tbServiceStatus.Text = 'Service: Running'
+        $ellServiceDot.Fill   = Get-Brush '#4ec9b0'
+    } else {
+        $tbServiceStatus.Text = "Service: $($svc.Status)"
+        $ellServiceDot.Fill   = Get-Brush '#dcdcaa'
+    }
+}
+
+# Compute and display the RunDir label beneath the WorkDir box
+function Update-RunDirLabel {
+    $dateFolder = Get-Date -Format 'yyyyMMdd'
+    $tbRunDir.Text = "Active folder:  $($sync.WorkDir)\$dateFolder"
 }
 #endregion
 
-#region --- Runspace Worker ---
-# All heavy work runs in a background runspace. Logging is funnelled back via the
-# $sync.Queue; a DispatcherTimer drains the queue on the UI thread.
-
+#region --- Runspace Job Runner ---
 function Start-NixxisJob {
     param([scriptblock]$Work, [string]$JobName = 'Operation')
 
-    if ($sync.Busy) {
-        Write-UILog "Another operation is already running. Please wait." 'WARN'
-        return
-    }
-    Set-UIBusy $true
-    $sync.Abort = $false
+    if ($sync.Busy) { Add-LogEntry "Another operation is already running." 'WARN'; return }
 
-    # Capture current UI values for the runspace
-    $mode       = if ($rbOnlineAuto.IsChecked)   { 'online-auto' }
-                  elseif ($rbOnlineCustom.IsChecked) { 'online-custom' }
-                  else { 'offline' }
-    $cpUrl      = $tbCPUrl.Text.Trim()
-    $csUrl      = $tbCSUrl.Text.Trim()
-    $ncsUrl     = $tbNCSUrl.Text.Trim()
-    $offPath    = $tbOfflinePath.Text.Trim()
+    # Determine and create the dated run directory
+    $dateFolder     = Get-Date -Format 'yyyyMMdd'
+    $sync.WorkDir   = $tbWorkDir.Text.Trim()
+    $sync.RunDir    = Join-Path $sync.WorkDir $dateFolder
+    if (-not (Test-Path $sync.RunDir)) {
+        New-Item -Path $sync.RunDir -ItemType Directory -Force | Out-Null
+    }
+    Update-RunDirLabel
+    Add-LogEntry "Working directory: $($sync.RunDir)" 'CYAN'
+
+    Set-Busy $true
+    Set-Status "Running: $JobName" 5
+
+    # Snapshot UI values for runspace
+    $mode      = if ($rbOnlineAuto.IsChecked)    { 'online-auto' }
+                 elseif ($rbOnlineCustom.IsChecked) { 'online-custom' }
+                 else { 'offline' }
+    $cpUrl     = $tbCPUrl.Text.Trim()
+    $csUrl     = $tbCSUrl.Text.Trim()
+    $ncsUrl    = $tbNCSUrl.Text.Trim()
+    $offPath   = $tbOfflinePath.Text.Trim()
+    $runDir    = $sync.RunDir
 
     $rs = [runspacefactory]::CreateRunspace()
     $rs.ApartmentState = 'STA'
@@ -449,18 +457,16 @@ function Start-NixxisJob {
     $rs.SessionStateProxy.SetVariable('csUrl',   $csUrl)
     $rs.SessionStateProxy.SetVariable('ncsUrl',  $ncsUrl)
     $rs.SessionStateProxy.SetVariable('offlinePath', $offPath)
+    $rs.SessionStateProxy.SetVariable('runDir',  $runDir)
 
     $ps = [powershell]::Create()
     $ps.Runspace = $rs
 
-    # Shared logging helper inside runspace
+    # Logging helper available inside every runspace scriptblock
     $logHelper = {
         function Write-BgLog {
             param([string]$Message, [string]$Level = 'INFO')
             $sync.Queue.Enqueue(@{ Message = $Message; Level = $Level })
-            # Also write direct to file
-            $ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-            Add-Content -Path $logFile -Value "[$ts] $Message" -ErrorAction SilentlyContinue
         }
     }
 
@@ -470,56 +476,67 @@ function Start-NixxisJob {
     $startTime = [datetime]::Now
     $handle    = $ps.BeginInvoke()
 
-    # Timer to drain log queue and detect completion
+    # DispatcherTimer — runs on UI thread, safe to touch controls directly
     $timer          = [System.Windows.Threading.DispatcherTimer]::new()
-    $timer.Interval = [timespan]::FromMilliseconds(150)
+    $timer.Interval = [timespan]::FromMilliseconds(200)
+
+    # Use a script-level variable to hold closure state
+    $script:_job = @{ ps = $ps; rs = $rs; handle = $handle; timer = $timer; start = $startTime; name = $JobName }
+
     $timer.Add_Tick({
-        # Drain log queue
+        $j = $script:_job
+
+        # Drain log queue — already on UI thread, call Add-LogEntry directly
         $entry = $null
         while ($sync.Queue.TryDequeue([ref]$entry)) {
-            Write-UILog -Message $entry.Message -Level $entry.Level
+            Add-LogEntry $entry.Message $entry.Level
         }
+
         # Update elapsed
-        $elapsed = [datetime]::Now - $startTime
-        $tbElapsed.Text = "Elapsed: $($elapsed.ToString('mm\:ss'))"
+        $tbElapsed.Text = "Elapsed: $(([datetime]::Now - $j.start).ToString('mm\:ss'))"
 
         # Check completion
-        if ($handle.IsCompleted) {
-            $timer.Stop()
-            # Drain remaining
+        if ($j.handle.IsCompleted) {
+            $j.timer.Stop()
+
+            # Final drain
             $entry = $null
             while ($sync.Queue.TryDequeue([ref]$entry)) {
-                Write-UILog -Message $entry.Message -Level $entry.Level
+                Add-LogEntry $entry.Message $entry.Level
             }
-            # Collect errors
-            if ($ps.HadErrors) {
-                foreach ($err in $ps.Streams.Error) {
-                    Write-UILog "Error: $err" 'ERROR'
+
+            # Collect runspace errors
+            if ($j.ps.HadErrors) {
+                foreach ($err in $j.ps.Streams.Error) {
+                    Add-LogEntry "Error: $err" 'ERROR'
                 }
             }
-            $ps.Dispose()
-            $rs.Dispose()
-            Set-UIBusy $false
+            try { $j.ps.EndInvoke($j.handle) } catch { Add-LogEntry "Job exception: $_" 'ERROR' }
+            $j.ps.Dispose()
+            $j.rs.Dispose()
+
+            Set-Busy $false
+            Set-Status "Done: $($j.name)" 100
             Update-ServiceStatus
-            $progressBar.Value = 100
         }
     })
     $timer.Start()
 }
 #endregion
 
-#region --- Core Operations (run inside runspace) ---
+#region --- Operation Scriptblocks ---
 
 $sbDownload = {
     Write-BgLog '=== DOWNLOAD PHASE ===' 'HEADER'
+    Write-BgLog "Saving to: $runDir" 'CYAN'
 
     $baseUrl = 'http://update.nixxis.net'
 
-    function Get-LatestFolder($url, $desc) {
-        Write-BgLog "Fetching directory: $url" 'CYAN'
+    function Get-LatestFolder([string]$url, [string]$desc) {
+        Write-BgLog "Scanning: $url" 'GRAY'
         $resp    = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30
         $folders = @()
-        foreach ($pat in @('href="([^"]+/)"','(v\d+\.\d+)','(\d+\.\d+\.\d+)')) {
+        foreach ($pat in @('href="([^"]+/)"', '(v\d+\.\d+)', '(\d+\.\d+\.\d+)')) {
             [regex]::Matches($resp.Content, $pat) | ForEach-Object {
                 $n = $_.Groups[1].Value.TrimEnd('/')
                 if ($n -notmatch '^(\.\.|\.|icons|cgi-bin)$' -and $n -notin $folders) { $folders += $n }
@@ -527,49 +544,48 @@ $sbDownload = {
         }
         if (-not $folders) { throw "No folders found at $url" }
         $latest = ($folders | Sort-Object {
-            $v = $_ -replace '[^\d\.]',''
+            $v = $_ -replace '[^\d\.]', ''
             try { [version]$v } catch { [version]'0.0' }
         } | Select-Object -Last 1)
         Write-BgLog "Latest $desc`: $latest" 'OK'
         return $latest
     }
 
-    function Get-ZipFile($url, $dest) {
+    function Get-ZipFile([string]$url, [string]$dest) {
         Write-BgLog "Downloading: $url" 'CYAN'
         $wc = New-Object System.Net.WebClient
         $wc.DownloadFile($url, $dest)
-        $sz = [math]::Round((Get-Item $dest).Length / 1MB, 2)
-        Write-BgLog "  → Saved $(Split-Path $dest -Leaf) ($sz MB)" 'OK'
         $wc.Dispose()
+        $sz = [math]::Round((Get-Item $dest).Length / 1MB, 2)
+        Write-BgLog "  Saved $(Split-Path $dest -Leaf) ($sz MB)" 'OK'
     }
 
-    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-    if (-not $scriptDir) { $scriptDir = $env:TEMP }
-
     if ($mode -eq 'offline') {
-        $src = if ($offlinePath) { $offlinePath } else { $scriptDir }
+        $src = if ($offlinePath) { $offlinePath } else { $runDir }
         Write-BgLog "Offline mode — source: $src" 'MAGENTA'
-        @('ClientProvisioning.zip','ClientSoftware.zip','NCS.zip') | ForEach-Object {
-            $f = Join-Path $src $_
+        foreach ($zip in @('ClientProvisioning.zip','ClientSoftware.zip','NCS.zip')) {
+            $f = Join-Path $src $zip
             if (-not (Test-Path $f)) { throw "Missing offline file: $f" }
-            Write-BgLog "  Found $_" 'OK'
-            if ($src -ne $scriptDir) { Copy-Item $f $scriptDir -Force }
+            Write-BgLog "  Found $zip" 'OK'
+            if ((Resolve-Path $src).Path -ne (Resolve-Path $runDir).Path) {
+                Copy-Item $f $runDir -Force
+                Write-BgLog "  Copied to run folder" 'GRAY'
+            }
         }
     } else {
-        # Resolve URLs
         $resolvedCP  = $cpUrl
         $resolvedCS  = $csUrl
         $resolvedNCS = $ncsUrl
 
         if (-not $resolvedCP -or -not $resolvedCS -or -not $resolvedNCS) {
-            $latestVer    = Get-LatestFolder $baseUrl    'version'
-            $versionUrl   = "$baseUrl/$latestVer"
+            $latestVer  = Get-LatestFolder $baseUrl 'version'
+            $versionUrl = "$baseUrl/$latestVer"
 
             if (-not $resolvedCP -or -not $resolvedCS) {
-                $clientUrl  = "$versionUrl/Client"
-                $latestCli  = Get-LatestFolder $clientUrl 'client build'
-                if (-not $resolvedCP)  { $resolvedCP  = "$clientUrl/$latestCli/ClientProvisioning.zip" }
-                if (-not $resolvedCS)  { $resolvedCS  = "$clientUrl/$latestCli/ClientSoftware.zip" }
+                $clientUrl = "$versionUrl/Client"
+                $latestCli = Get-LatestFolder $clientUrl 'client build'
+                if (-not $resolvedCP)  { $resolvedCP = "$clientUrl/$latestCli/ClientProvisioning.zip" }
+                if (-not $resolvedCS)  { $resolvedCS = "$clientUrl/$latestCli/ClientSoftware.zip" }
             }
             if (-not $resolvedNCS) {
                 $serverUrl  = "$versionUrl/Server"
@@ -578,70 +594,66 @@ $sbDownload = {
             }
         }
 
-        Write-BgLog "ClientProvisioning URL : $resolvedCP"  'GRAY'
-        Write-BgLog "ClientSoftware URL     : $resolvedCS"  'GRAY'
-        Write-BgLog "NCS URL                : $resolvedNCS" 'GRAY'
+        Write-BgLog "ClientProvisioning : $resolvedCP"  'GRAY'
+        Write-BgLog "ClientSoftware     : $resolvedCS"  'GRAY'
+        Write-BgLog "NCS                : $resolvedNCS" 'GRAY'
 
-        Get-ZipFile $resolvedCP  (Join-Path $scriptDir 'ClientProvisioning.zip')
-        Get-ZipFile $resolvedCS  (Join-Path $scriptDir 'ClientSoftware.zip')
-        Get-ZipFile $resolvedNCS (Join-Path $scriptDir 'NCS.zip')
+        Get-ZipFile $resolvedCP  (Join-Path $runDir 'ClientProvisioning.zip')
+        Get-ZipFile $resolvedCS  (Join-Path $runDir 'ClientSoftware.zip')
+        Get-ZipFile $resolvedNCS (Join-Path $runDir 'NCS.zip')
     }
-    Write-BgLog 'Download phase complete.' 'OK'
+    Write-BgLog "Download phase complete. Files in: $runDir" 'OK'
 }
 
 $sbPrepare = {
     Write-BgLog '=== PREPARE / EXTRACT PHASE ===' 'HEADER'
-    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-    if (-not $scriptDir) { $scriptDir = $env:TEMP }
+    Write-BgLog "Source folder: $runDir" 'CYAN'
 
-    @('NCS.zip','ClientProvisioning.zip','ClientSoftware.zip') | ForEach-Object {
-        if (-not (Test-Path (Join-Path $scriptDir $_))) { throw "Required ZIP not found: $_" }
+    foreach ($z in @('NCS.zip','ClientProvisioning.zip','ClientSoftware.zip')) {
+        if (-not (Test-Path (Join-Path $runDir $z))) { throw "Required ZIP not found in run folder: $z`nExpected in: $runDir" }
     }
 
-    $appServer = Join-Path $scriptDir 'NixxisApplicationServer'
+    $appServer = Join-Path $runDir 'NixxisApplicationServer'
     if (Test-Path $appServer) {
-        Write-BgLog "Removing old NixxisApplicationServer folder..." 'WARN'
+        Write-BgLog "Removing old NixxisApplicationServer staging folder..." 'WARN'
         Remove-Item $appServer -Recurse -Force
     }
     New-Item $appServer -ItemType Directory -Force | Out-Null
-    Write-BgLog "Created NixxisApplicationServer" 'OK'
+    Write-BgLog "Created staging folder: $appServer" 'OK'
 
     Write-BgLog "Extracting NCS.zip..." 'CYAN'
-    Expand-Archive (Join-Path $scriptDir 'NCS.zip') -DestinationPath $appServer -Force
+    Expand-Archive (Join-Path $runDir 'NCS.zip') -DestinationPath $appServer -Force
     Write-BgLog "  Done" 'OK'
 
-    $csSrc = Join-Path $appServer 'ClientSoftware'
-    New-Item $csSrc -ItemType Directory -Force | Out-Null
+    $csDest = Join-Path $appServer 'ClientSoftware'
+    New-Item $csDest -ItemType Directory -Force | Out-Null
     Write-BgLog "Extracting ClientSoftware.zip..." 'CYAN'
-    Expand-Archive (Join-Path $scriptDir 'ClientSoftware.zip') -DestinationPath $csSrc -Force
+    Expand-Archive (Join-Path $runDir 'ClientSoftware.zip') -DestinationPath $csDest -Force
     Write-BgLog "  Done" 'OK'
 
     $provPath   = Join-Path $appServer 'CrAppServer\provisioning'
     $provClient = Join-Path $provPath 'client'
-    New-Item $provPath   -ItemType Directory -Force | Out-Null
     New-Item $provClient -ItemType Directory -Force | Out-Null
-    Copy-Item (Join-Path $scriptDir 'ClientSoftware.zip') $provPath -Force
+    Copy-Item (Join-Path $runDir 'ClientSoftware.zip') $provPath -Force
+
     Write-BgLog "Extracting ClientProvisioning.zip..." 'CYAN'
-    Expand-Archive (Join-Path $scriptDir 'ClientProvisioning.zip') -DestinationPath $provClient -Force
+    Expand-Archive (Join-Path $runDir 'ClientProvisioning.zip') -DestinationPath $provClient -Force
     Write-BgLog "  Done" 'OK'
 
     $settingsSrc = Join-Path $provClient 'settings'
     if (Test-Path $settingsSrc) {
         Move-Item $settingsSrc $provPath -Force
-        Write-BgLog "Moved settings folder" 'OK'
+        Write-BgLog "Moved settings folder to provisioning root" 'OK'
     }
-    Write-BgLog 'Preparation phase complete.' 'OK'
+    Write-BgLog "Preparation phase complete. Staged in: $appServer" 'OK'
 }
 
 $sbStopService = {
     Write-BgLog '=== STOP SERVICE PHASE ===' 'HEADER'
-    $svcName  = 'crappserver'
-    $procName = 'crappserver'
 
-    # Kill desktop client
-    $client = Get-Process 'nixxisclientdesktop' -ErrorAction SilentlyContinue
-    if ($client) {
-        Write-BgLog "Killing nixxisclientdesktop.exe (PID $($client.Id))..." 'WARN'
+    $clientProc = Get-Process 'nixxisclientdesktop' -ErrorAction SilentlyContinue
+    if ($clientProc) {
+        Write-BgLog "Killing nixxisclientdesktop.exe (PID $($clientProc.Id))..." 'WARN'
         & taskkill /IM nixxisclientdesktop.exe /F 2>&1 | Out-Null
         Start-Sleep 2
         if (Get-Process 'nixxisclientdesktop' -ErrorAction SilentlyContinue) {
@@ -649,21 +661,20 @@ $sbStopService = {
         } else { Write-BgLog "nixxisclientdesktop terminated." 'OK' }
     } else { Write-BgLog "nixxisclientdesktop not running." 'GRAY' }
 
-    # Stop service
-    Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+    Stop-Service -Name 'crappserver' -Force -ErrorAction SilentlyContinue
     $max = 60; $i = 0
     do {
-        $svc  = Get-Service $svcName -ErrorAction SilentlyContinue
-        $proc = Get-Process $procName -ErrorAction SilentlyContinue
-        if ($svc.Status -eq 'Stopped' -and -not $proc) {
+        $svc  = Get-Service 'crappserver' -ErrorAction SilentlyContinue
+        $proc = Get-Process 'crappserver' -ErrorAction SilentlyContinue
+        if ((-not $svc -or $svc.Status -eq 'Stopped') -and -not $proc) {
             Start-Sleep 3
-            if (-not (Get-Process $procName -ErrorAction SilentlyContinue)) {
+            if (-not (Get-Process 'crappserver' -ErrorAction SilentlyContinue)) {
                 Write-BgLog "Crappserver fully stopped." 'OK'; break
             }
         }
         $i++
-        Write-BgLog "Waiting for service to stop… attempt $i/$max" 'WARN'
-        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+        Write-BgLog "Waiting for service to stop... attempt $i / $max" 'WARN'
+        Stop-Service -Name 'crappserver' -Force -ErrorAction SilentlyContinue
         Start-Sleep 2
     } until ($i -ge $max)
     if ($i -ge $max) { throw "Service did not stop within 120 seconds." }
@@ -672,17 +683,20 @@ $sbStopService = {
 
 $sbBackup = {
     Write-BgLog '=== BACKUP PHASE ===' 'HEADER'
-    $base   = 'C:\NixxisMaintenance\BackUp'
-    $date   = Get-Date -Format 'yyyyMMdd'
-    $year   = (Get-Date).Year.ToString()
-    $dest   = Join-Path $base "$year\$date"
-    $nms    = Join-Path $dest 'NMS'
-    $sql    = Join-Path $dest 'SQL'
-    foreach ($p in $dest,$nms,$sql) { New-Item $p -ItemType Directory -Force | Out-Null }
-    @('NMS1','NMS2','NMS3','NMS4') | ForEach-Object { New-Item (Join-Path $nms $_) -ItemType Directory -Force | Out-Null }
-    Write-BgLog "Backup folder: $dest" 'CYAN'
+    $dateFolder = Get-Date -Format 'yyyyMMdd'
+    $year       = (Get-Date).Year.ToString()
+    $backupBase = 'C:\NixxisMaintenance\BackUp'
+    $dest       = Join-Path $backupBase "$year\$dateFolder"
 
-    foreach ($src in @('C:\Nixxis\CrAppServer','C:\Nixxis\ClientSoftware')) {
+    foreach ($p in @($dest, (Join-Path $dest 'NMS'), (Join-Path $dest 'SQL'))) {
+        New-Item $p -ItemType Directory -Force | Out-Null
+    }
+    @('NMS1','NMS2','NMS3','NMS4') | ForEach-Object {
+        New-Item (Join-Path $dest "NMS\$_") -ItemType Directory -Force | Out-Null
+    }
+    Write-BgLog "Backup destination: $dest" 'CYAN'
+
+    foreach ($src in @('C:\Nixxis\CrAppServer', 'C:\Nixxis\ClientSoftware')) {
         if (Test-Path $src) {
             $name = Split-Path $src -Leaf
             Write-BgLog "Backing up $name..." 'CYAN'
@@ -697,7 +711,7 @@ $sbCleanup = {
     Write-BgLog '=== CLEANUP PHASE ===' 'HEADER'
     $base = 'C:\Nixxis\CrAppServer'
     if (-not (Test-Path $base)) {
-        Write-BgLog "CrAppServer not found — nothing to clean." 'WARN'
+        Write-BgLog "CrAppServer not found at $base — nothing to clean." 'WARN'
     } else {
         $files = @(
             "$base\AdminLink.dll","$base\agsXMPP.dll","$base\CRAppServerInterfaces.dll",
@@ -716,17 +730,13 @@ $sbCleanup = {
         foreach ($f in $files) {
             if (Test-Path $f) {
                 try { Remove-Item $f -Force; Write-BgLog "Deleted: $(Split-Path $f -Leaf)" 'GRAY' }
-                catch { Write-BgLog "Could not delete $f : $_" 'WARN' }
+                catch { Write-BgLog "Could not delete $(Split-Path $f -Leaf): $_" 'WARN' }
             }
         }
-
-        # .pdb files
         Get-ChildItem $base -Filter '*.pdb' -File -ErrorAction SilentlyContinue | ForEach-Object {
             try { Remove-Item $_.FullName -Force; Write-BgLog "Deleted PDB: $($_.Name)" 'GRAY' }
             catch { Write-BgLog "Could not delete PDB $($_.Name): $_" 'WARN' }
         }
-
-        # Provisioning folder (except Settings)
         $prov = Join-Path $base 'Provisioning'
         if (Test-Path $prov) {
             Get-ChildItem $prov | Where-Object { $_.Name -ne 'Settings' } | ForEach-Object {
@@ -735,43 +745,34 @@ $sbCleanup = {
             }
         }
     }
-
-    # ClientSoftware folder
     $cs = 'C:\Nixxis\ClientSoftware'
     if (Test-Path $cs) {
         Remove-Item $cs -Recurse -Force -ErrorAction SilentlyContinue
         Write-BgLog "Removed ClientSoftware folder" 'OK'
     } else { Write-BgLog "ClientSoftware not found — skipping." 'WARN' }
-
     Write-BgLog 'Cleanup phase complete.' 'OK'
 }
 
 $sbDeploy = {
     Write-BgLog '=== DEPLOY PHASE ===' 'HEADER'
-    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-    if (-not $scriptDir) { $scriptDir = $env:TEMP }
-    $src = Join-Path $scriptDir 'NixxisApplicationServer'
-    if (-not (Test-Path $src)) { throw "NixxisApplicationServer folder not found. Run Prepare step first." }
+    $appServer = Join-Path $runDir 'NixxisApplicationServer'
+    if (-not (Test-Path $appServer)) { throw "NixxisApplicationServer not found in run folder. Run Prepare step first.`nExpected: $appServer" }
 
-    $folders = @(
-        @{ S = 'ClientSoftware' ; D = 'C:\Nixxis\ClientSoftware'   },
-        @{ S = 'CrAppServer'    ; D = 'C:\Nixxis\CrAppServer'      },
-        @{ S = 'MediaServer'    ; D = 'C:\Nixxis\MediaServer'       },
-        @{ S = 'Reporting'      ; D = 'C:\Nixxis\Reporting'         },
-        @{ S = 'SampleConfigFiles'; D='C:\Nixxis\SampleConfigFiles' },
-        @{ S = 'SoundsSamples'  ; D = 'C:\Nixxis\SoundsSamples'     }
-    )
-
-    if (-not (Test-Path 'C:\Nixxis')) { New-Item 'C:\Nixxis' -ItemType Directory -Force | Out-Null }
-
-    foreach ($f in $folders) {
-        $srcPath = Join-Path $src $f.S
-        if (Test-Path $srcPath) {
-            Write-BgLog "Deploying $($f.S) → $($f.D)..." 'CYAN'
+    foreach ($f in @(
+        @{ S='ClientSoftware';   D='C:\Nixxis\ClientSoftware'   },
+        @{ S='CrAppServer';      D='C:\Nixxis\CrAppServer'      },
+        @{ S='MediaServer';      D='C:\Nixxis\MediaServer'       },
+        @{ S='Reporting';        D='C:\Nixxis\Reporting'         },
+        @{ S='SampleConfigFiles';D='C:\Nixxis\SampleConfigFiles' },
+        @{ S='SoundsSamples';    D='C:\Nixxis\SoundsSamples'     }
+    )) {
+        $src = Join-Path $appServer $f.S
+        if (Test-Path $src) {
+            Write-BgLog "Deploying $($f.S)  ->  $($f.D)..." 'CYAN'
             if (-not (Test-Path $f.D)) { New-Item $f.D -ItemType Directory -Force | Out-Null }
-            Copy-Item "$srcPath\*" $f.D -Recurse -Force
+            Copy-Item "$src\*" $f.D -Recurse -Force
             Write-BgLog "  Done" 'OK'
-        } else { Write-BgLog "Source not found: $($f.S) — skipping." 'WARN' }
+        } else { Write-BgLog "Source not found in staging: $($f.S) — skipping." 'WARN' }
     }
     Write-BgLog 'Deploy phase complete.' 'OK'
 }
@@ -783,115 +784,104 @@ $sbStartService = {
     Start-Service 'crappserver'
     Start-Sleep 3
     $svc.Refresh()
-    if ($svc.Status -eq 'Running') {
-        Write-BgLog "Crappserver is Running." 'OK'
-    } else {
-        Write-BgLog "Service status after start: $($svc.Status)" 'WARN'
-    }
+    Write-BgLog "Service status: $($svc.Status)" $(if ($svc.Status -eq 'Running') { 'OK' } else { 'WARN' })
 }
 
-# Full update: chains all phases
-$sbFullUpdate = [scriptblock]::Create(@"
-$($sbDownload.ToString())
-$($sbPrepare.ToString())
-$($sbStopService.ToString())
-$($sbBackup.ToString())
-$($sbCleanup.ToString())
-$($sbDeploy.ToString())
-Write-BgLog '=============================' 'HEADER'
-Write-BgLog 'FULL UPDATE COMPLETE' 'OK'
-Write-BgLog 'Start the Nixxis service manually or click Start Service.' 'CYAN'
-"@)
+# Full update chains all phases in sequence
+$sbFullUpdate = [scriptblock]::Create(
+    $sbDownload.ToString()     + "`n" +
+    $sbPrepare.ToString()      + "`n" +
+    $sbStopService.ToString()  + "`n" +
+    $sbBackup.ToString()       + "`n" +
+    $sbCleanup.ToString()      + "`n" +
+    $sbDeploy.ToString()       + "`n" +
+    "Write-BgLog '=== FULL UPDATE COMPLETE ===' 'OK'" + "`n" +
+    "Write-BgLog 'Click Start Service when ready.' 'CYAN'"
+)
 #endregion
 
 #region --- Event Handlers ---
 
-# Mode radio buttons
-$rbOnlineCustom.Add_Checked({ $pnlCustomUrls.Visibility = 'Visible'; $pnlOfflinePath.Visibility = 'Collapsed' })
-$rbOffline.Add_Checked({      $pnlOfflinePath.Visibility = 'Visible'; $pnlCustomUrls.Visibility = 'Collapsed' })
-$rbOnlineAuto.Add_Checked({   $pnlCustomUrls.Visibility = 'Collapsed'; $pnlOfflinePath.Visibility = 'Collapsed' })
+# Mode radio toggles
+$rbOnlineCustom.Add_Checked({ $pnlCustomUrls.Visibility  = 'Visible';   $pnlOfflinePath.Visibility = 'Collapsed' })
+$rbOffline.Add_Checked({      $pnlOfflinePath.Visibility = 'Visible';   $pnlCustomUrls.Visibility  = 'Collapsed' })
+$rbOnlineAuto.Add_Checked({   $pnlCustomUrls.Visibility  = 'Collapsed'; $pnlOfflinePath.Visibility = 'Collapsed' })
 
-# Browse offline folder
-$btnBrowse.Add_Click({
-    $dlg         = [System.Windows.Forms.FolderBrowserDialog]::new()
+# WorkDir picker
+$btnBrowseWork.Add_Click({
+    $dlg = [System.Windows.Forms.FolderBrowserDialog]::new()
+    $dlg.Description  = 'Select the NixxisMaintenance working directory'
+    $dlg.SelectedPath = $tbWorkDir.Text
+    if ($dlg.ShowDialog() -eq 'OK') {
+        $tbWorkDir.Text = $dlg.SelectedPath
+        $sync.WorkDir   = $dlg.SelectedPath
+        Update-RunDirLabel
+    }
+})
+
+# WorkDir text change — keep sync live
+$tbWorkDir.Add_TextChanged({
+    $sync.WorkDir = $tbWorkDir.Text.Trim()
+    Update-RunDirLabel
+})
+
+# Offline folder picker
+$btnBrowseOffline.Add_Click({
+    $dlg = [System.Windows.Forms.FolderBrowserDialog]::new()
     $dlg.Description = 'Select folder containing the 3 Nixxis ZIP files'
     if ($dlg.ShowDialog() -eq 'OK') { $tbOfflinePath.Text = $dlg.SelectedPath }
 })
 
-# Refresh service status
 $btnRefreshStatus.Add_Click({ Update-ServiceStatus })
 
-# Log controls
 $btnClearLog.Add_Click({
     $rtbLog.Document.Blocks.Clear()
     $sync.LogLines.Clear()
 })
 $btnSaveLog.Add_Click({
     $dlg = [Microsoft.Win32.SaveFileDialog]::new()
-    $dlg.Title      = 'Save Log File'
-    $dlg.Filter     = 'Text Files (*.txt)|*.txt|All Files (*.*)|*.*'
-    $dlg.FileName   = "NixxisLog_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
+    $dlg.Title    = 'Save Log File'
+    $dlg.Filter   = 'Text Files (*.txt)|*.txt|All Files (*.*)|*.*'
+    $dlg.FileName = "NixxisLog_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
     if ($dlg.ShowDialog() -eq $true) {
         $sync.LogLines | Set-Content $dlg.FileName -Encoding UTF8
-        Write-UILog "Log saved to: $($dlg.FileName)" 'OK'
+        Add-LogEntry "Log saved: $($dlg.FileName)" 'OK'
     }
 })
 
-# Quick actions
-$btnOpenBackup.Add_Click({  $p = 'C:\NixxisMaintenance\BackUp'; if (Test-Path $p) { Start-Process explorer $p } else { Write-UILog "Backup folder not found yet." 'WARN' } })
-$btnOpenLogs.Add_Click({    $p = 'C:\NixxisMaintenance\Logs';   if (Test-Path $p) { Start-Process explorer $p } else { Write-UILog "Logs folder not found yet." 'WARN' } })
-$btnOpenNixxis.Add_Click({  $p = 'C:\Nixxis';                   if (Test-Path $p) { Start-Process explorer $p } else { Write-UILog "C:\Nixxis not found on this machine." 'WARN' } })
+$btnOpenWork.Add_Click({
+    $p = $tbWorkDir.Text.Trim()
+    if (Test-Path $p) { Start-Process explorer $p }
+    else { Add-LogEntry "Working directory not found: $p — it will be created on first run." 'WARN' }
+})
+$btnOpenLogs.Add_Click({
+    if (Test-Path $logDir) { Start-Process explorer $logDir }
+    else { Add-LogEntry "Logs folder not yet created." 'WARN' }
+})
+$btnOpenNixxis.Add_Click({
+    if (Test-Path 'C:\Nixxis') { Start-Process explorer 'C:\Nixxis' }
+    else { Add-LogEntry "C:\Nixxis not found on this machine." 'WARN' }
+})
 
 # Operation buttons
-$btnRunFull.Add_Click({
-    Write-UILog '==== STARTING FULL UPDATE ====' 'HEADER'
-    Set-UIStatus 'Running full update…' 0
-    Start-NixxisJob -Work $sbFullUpdate -JobName 'Full Update'
-})
-$btnDownload.Add_Click({
-    Write-UILog '==== DOWNLOAD STEP ====' 'HEADER'
-    Set-UIStatus 'Downloading ZIPs…' 0
-    Start-NixxisJob -Work $sbDownload -JobName 'Download'
-})
-$btnPrepare.Add_Click({
-    Write-UILog '==== PREPARE STEP ====' 'HEADER'
-    Set-UIStatus 'Preparing files…' 0
-    Start-NixxisJob -Work $sbPrepare -JobName 'Prepare'
-})
-$btnStopService.Add_Click({
-    Write-UILog '==== STOP SERVICE ====' 'HEADER'
-    Set-UIStatus 'Stopping Nixxis service…' 0
-    Start-NixxisJob -Work $sbStopService -JobName 'Stop Service'
-})
-$btnBackup.Add_Click({
-    Write-UILog '==== BACKUP STEP ====' 'HEADER'
-    Set-UIStatus 'Backing up files…' 0
-    Start-NixxisJob -Work $sbBackup -JobName 'Backup'
-})
-$btnCleanup.Add_Click({
-    Write-UILog '==== CLEANUP STEP ====' 'HEADER'
-    Set-UIStatus 'Cleaning up old files…' 0
-    Start-NixxisJob -Work $sbCleanup -JobName 'Cleanup'
-})
-$btnDeploy.Add_Click({
-    Write-UILog '==== DEPLOY STEP ====' 'HEADER'
-    Set-UIStatus 'Deploying new files…' 0
-    Start-NixxisJob -Work $sbDeploy -JobName 'Deploy'
-})
-$btnStartService.Add_Click({
-    Write-UILog '==== START SERVICE ====' 'HEADER'
-    Set-UIStatus 'Starting Nixxis service…' 0
-    Start-NixxisJob -Work $sbStartService -JobName 'Start Service'
-})
+$btnRunFull.Add_Click({     Add-LogEntry '==== FULL UPDATE ====' 'HEADER';   Set-Status 'Running full update...' 0;  Start-NixxisJob $sbFullUpdate    'Full Update'   })
+$btnDownload.Add_Click({    Add-LogEntry '==== DOWNLOAD ====' 'HEADER';      Set-Status 'Downloading ZIPs...' 0;    Start-NixxisJob $sbDownload      'Download'      })
+$btnPrepare.Add_Click({     Add-LogEntry '==== PREPARE ====' 'HEADER';       Set-Status 'Preparing files...' 0;     Start-NixxisJob $sbPrepare       'Prepare'       })
+$btnStopService.Add_Click({ Add-LogEntry '==== STOP SERVICE ====' 'HEADER';  Set-Status 'Stopping service...' 0;    Start-NixxisJob $sbStopService   'Stop Service'  })
+$btnBackup.Add_Click({      Add-LogEntry '==== BACKUP ====' 'HEADER';        Set-Status 'Backing up...' 0;         Start-NixxisJob $sbBackup        'Backup'        })
+$btnCleanup.Add_Click({     Add-LogEntry '==== CLEANUP ====' 'HEADER';       Set-Status 'Cleaning up...' 0;        Start-NixxisJob $sbCleanup       'Cleanup'       })
+$btnDeploy.Add_Click({      Add-LogEntry '==== DEPLOY ====' 'HEADER';        Set-Status 'Deploying...' 0;          Start-NixxisJob $sbDeploy        'Deploy'        })
+$btnStartService.Add_Click({Add-LogEntry '==== START SERVICE ====' 'HEADER'; Set-Status 'Starting service...' 0;   Start-NixxisJob $sbStartService  'Start Service' })
 #endregion
 
 #region --- Startup ---
-Write-UILog '  Nixxis Maintenance Tool  ' 'HEADER'
-Write-UILog "  Log file: $logFile"         'GRAY'
-Write-UILog "  Running as: $env:USERNAME"  'GRAY'
-Write-UILog "  Host: $env:COMPUTERNAME"    'GRAY'
-Write-UILog '  Select a mode and click Run Full Update, or use individual steps.' 'CYAN'
-Write-UILog '' 'INFO'
+Update-RunDirLabel
+Add-LogEntry 'Nixxis Maintenance Tool ready.' 'HEADER'
+Add-LogEntry "User: $env:USERNAME  |  Host: $env:COMPUTERNAME" 'GRAY'
+Add-LogEntry "Log file: $logFile" 'GRAY'
+Add-LogEntry "Default working directory: $($sync.WorkDir)" 'CYAN'
+Add-LogEntry "A dated subfolder (YYYYMMDD) will be created in that directory on each run." 'GRAY'
+Add-LogEntry '' 'INFO'
 Update-ServiceStatus
 
 $window.ShowDialog() | Out-Null
