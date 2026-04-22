@@ -235,7 +235,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 <Border Grid.Row="0" Background="#252526" CornerRadius="4,4,0,0" Padding="10,6" Margin="0,0,0,1">
                     <Grid>
                         <TextBlock Text="ACTIVITY LOG" Foreground="#9cdcfe" FontSize="11"
-                                   FontWeight="SemiBold" VerticalAlignment="Center" LetterSpacing="1"/>
+                                   FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button x:Name="btnClearLog" Content="Clear"    Style="{StaticResource ActionBtn}" Height="24" Width="55" FontSize="11" Margin="2,0"/>
                             <Button x:Name="btnSaveLog"  Content="Save Log" Style="{StaticResource ActionBtn}" Height="24" Width="68" FontSize="11" Margin="2,0"/>
