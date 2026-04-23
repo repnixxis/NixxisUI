@@ -22,12 +22,14 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
+$script:AppVersion = '1.1'
+
 #region --- XAML ---
 [xml]$xaml = @'
 <Window
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Nixxis NCS Installer and Updater"
+    Title="NCS Installer / Updater"
     Height="760" Width="1180"
     MinHeight="620" MinWidth="960"
     WindowStartupLocation="CenterScreen"
@@ -131,8 +133,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="&#9881;" Foreground="#0ea5c5" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Nixxis NCS Installer / Updater" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
-                        <TextBlock Text="Explicit flows for Fresh Install and Existing Update" Foreground="#7e93a8" FontSize="10"/>
+                        <TextBlock x:Name="tbHeaderTitle" Text="NCS Installer / Updater" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="tbHeaderSubtitle" Text="Explicit flows for Fresh Install and Existing Update | v1.1" Foreground="#7e93a8" FontSize="10"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
@@ -214,8 +216,20 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     <GroupBox Header="  Source Mode  ">
                         <StackPanel>
                             <RadioButton x:Name="rbOnlineAuto"   Content="Online - Auto-Discover latest"  IsChecked="True"/>
+                            <RadioButton x:Name="rbOnlineSelect" Content="Online - Select discovered versions"/>
                             <RadioButton x:Name="rbOnlineCustom" Content="Online - Custom URLs"/>
                             <RadioButton x:Name="rbOffline"      Content="Offline - Use local ZIP files"/>
+
+                            <StackPanel x:Name="pnlOnlineSelect" Visibility="Collapsed" Margin="8,6,0,0">
+                                <Button x:Name="btnDiscoverVersions" Content="Discover Available Versions" Style="{StaticResource ActionBtn}" Width="190" HorizontalAlignment="Left"/>
+                                <TextBlock x:Name="tbDiscoveredBaseVersion" Foreground="#7f93a7" FontSize="10" Margin="2,4,0,2" Text="Base version: (not discovered)"/>
+                                <Label Content="Client version:"/>
+                                <ComboBox x:Name="cbClientVersion" MinHeight="26" Margin="2,1"/>
+                                <Label Content="Server version:"/>
+                                <ComboBox x:Name="cbServerVersion" MinHeight="26" Margin="2,1"/>
+                                <TextBlock Foreground="#666" FontSize="10" TextWrapping="Wrap" Margin="2,2,0,0"
+                                           Text="Use Discover first, then select the versions you want to deploy."/>
+                            </StackPanel>
 
                             <StackPanel x:Name="pnlCustomUrls" Visibility="Collapsed" Margin="8,6,0,0">
                                 <Label Content="ClientProvisioning.zip URL (blank = auto):"/>
@@ -381,11 +395,19 @@ $rbModeInstall  = ctrl 'rbModeInstall'
 $tbModeHint     = ctrl 'tbModeHint'
 $pnlUpdateFlow  = ctrl 'pnlUpdateFlow'
 $pnlInstallFlow = ctrl 'pnlInstallFlow'
+$tbHeaderTitle  = ctrl 'tbHeaderTitle'
+$tbHeaderSubtitle = ctrl 'tbHeaderSubtitle'
 $rbOnlineAuto    = ctrl 'rbOnlineAuto'
+$rbOnlineSelect  = ctrl 'rbOnlineSelect'
 $rbOnlineCustom  = ctrl 'rbOnlineCustom'
 $rbOffline       = ctrl 'rbOffline'
+$pnlOnlineSelect = ctrl 'pnlOnlineSelect'
 $pnlCustomUrls   = ctrl 'pnlCustomUrls'
 $pnlOfflinePath  = ctrl 'pnlOfflinePath'
+$btnDiscoverVersions = ctrl 'btnDiscoverVersions'
+$cbClientVersion = ctrl 'cbClientVersion'
+$cbServerVersion = ctrl 'cbServerVersion'
+$tbDiscoveredBaseVersion = ctrl 'tbDiscoveredBaseVersion'
 $tbCPUrl         = ctrl 'tbCPUrl'
 $tbCSUrl         = ctrl 'tbCSUrl'
 $tbNCSUrl        = ctrl 'tbNCSUrl'
@@ -447,6 +469,9 @@ $sync = [hashtable]::Synchronized(@{
     WorkDir = 'C:\NixxisMaintenance\Update'
     InstallPath = 'C:\Nixxis'
     ServiceName = 'crappserver'
+    SelectedBaseVersion = ''
+    SelectedClientVersion = ''
+    SelectedServerVersion = ''
     RunDir  = ''
     LogLines= [System.Collections.Generic.List[string]]::new()
 })
@@ -547,6 +572,53 @@ function Update-OperationModeUI {
         Add-LogEntry 'Switched to Update Existing mode.' 'CYAN'
     }
 }
+
+function Get-DiscoveredWebFolders {
+    param([string]$Url)
+
+    $resp = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 30
+    $folders = @()
+    foreach ($pat in @('href="([^"]+/)"', '(v\d+\.\d+)', '(\d+\.\d+\.\d+)')) {
+        [regex]::Matches($resp.Content, $pat) | ForEach-Object {
+            $n = $_.Groups[1].Value.TrimEnd('/')
+            if ($n -notmatch '^(\.\.|\.|icons|cgi-bin)$' -and $n -notin $folders) {
+                $folders += $n
+            }
+        }
+    }
+
+    return $folders
+}
+
+function Get-LatestVersionValue {
+    param([string[]]$Values)
+
+    if (-not $Values -or $Values.Count -eq 0) { return '' }
+    return ($Values | Sort-Object {
+        $v = $_ -replace '[^\d\.]', ''
+        try { [version]$v } catch { [version]'0.0' }
+    } | Select-Object -Last 1)
+}
+
+function Update-SourceModeUI {
+    if ($rbOffline.IsChecked) {
+        $pnlOfflinePath.Visibility = 'Visible'
+        $pnlCustomUrls.Visibility = 'Collapsed'
+        $pnlOnlineSelect.Visibility = 'Collapsed'
+    } elseif ($rbOnlineCustom.IsChecked) {
+        $pnlCustomUrls.Visibility = 'Visible'
+        $pnlOfflinePath.Visibility = 'Collapsed'
+        $pnlOnlineSelect.Visibility = 'Collapsed'
+    } elseif ($rbOnlineSelect.IsChecked) {
+        $pnlOnlineSelect.Visibility = 'Visible'
+        $pnlCustomUrls.Visibility = 'Collapsed'
+        $pnlOfflinePath.Visibility = 'Collapsed'
+    } else {
+        $pnlOnlineSelect.Visibility = 'Collapsed'
+        $pnlCustomUrls.Visibility = 'Collapsed'
+        $pnlOfflinePath.Visibility = 'Collapsed'
+    }
+}
 #endregion
 
 #region --- Runspace Job Runner ---
@@ -570,6 +642,7 @@ function Start-NixxisJob {
 
     # Snapshot UI values for runspace
     $mode      = if ($rbOnlineAuto.IsChecked)    { 'online-auto' }
+                 elseif ($rbOnlineSelect.IsChecked) { 'online-select' }
                  elseif ($rbOnlineCustom.IsChecked) { 'online-custom' }
                  else { 'offline' }
     $cpUrl     = $tbCPUrl.Text.Trim()
@@ -579,6 +652,9 @@ function Start-NixxisJob {
     $installPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
     $serviceName = $tbServiceName.Text.Trim()
     if ([string]::IsNullOrWhiteSpace($serviceName)) { $serviceName = 'crappserver' }
+    $selectedClientVersion = if ($cbClientVersion.SelectedItem) { [string]$cbClientVersion.SelectedItem } else { '' }
+    $selectedServerVersion = if ($cbServerVersion.SelectedItem) { [string]$cbServerVersion.SelectedItem } else { '' }
+    $selectedBaseVersion = if ($sync.SelectedBaseVersion) { [string]$sync.SelectedBaseVersion } else { '' }
     $optEnsureDotNet48 = [bool]$cbEnsureDotNet48.IsChecked
     $optInstallMoveFiles = [bool]$cbInstallMoveFiles.IsChecked
     $optCreateReportingUser = [bool]$cbCreateReportingUser.IsChecked
@@ -587,6 +663,8 @@ function Start-NixxisJob {
     $runDir    = $sync.RunDir
     $sync.InstallPath = $installPath
     $sync.ServiceName = $serviceName
+    $sync.SelectedClientVersion = $selectedClientVersion
+    $sync.SelectedServerVersion = $selectedServerVersion
 
     $rs = [runspacefactory]::CreateRunspace()
     $rs.ApartmentState = 'STA'
@@ -601,6 +679,9 @@ function Start-NixxisJob {
     $rs.SessionStateProxy.SetVariable('offlinePath', $offPath)
     $rs.SessionStateProxy.SetVariable('installPath', $installPath)
     $rs.SessionStateProxy.SetVariable('serviceName', $serviceName)
+    $rs.SessionStateProxy.SetVariable('selectedClientVersion', $selectedClientVersion)
+    $rs.SessionStateProxy.SetVariable('selectedServerVersion', $selectedServerVersion)
+    $rs.SessionStateProxy.SetVariable('selectedBaseVersion', $selectedBaseVersion)
     $rs.SessionStateProxy.SetVariable('optEnsureDotNet48', $optEnsureDotNet48)
     $rs.SessionStateProxy.SetVariable('optInstallMoveFiles', $optInstallMoveFiles)
     $rs.SessionStateProxy.SetVariable('optCreateReportingUser', $optCreateReportingUser)
@@ -726,7 +807,22 @@ $sbDownload = {
         $resolvedCS  = $csUrl
         $resolvedNCS = $ncsUrl
 
-        if (-not $resolvedCP -or -not $resolvedCS -or -not $resolvedNCS) {
+        if ($mode -eq 'online-select') {
+            if (-not $selectedClientVersion -or -not $selectedServerVersion) {
+                throw 'No client/server version selected. Use Discover Available Versions first.'
+            }
+
+            $selectedBase = if ($selectedBaseVersion) { $selectedBaseVersion } else { Get-LatestFolder $baseUrl 'version' }
+            $versionUrl = "$baseUrl/$selectedBase"
+            $clientUrl = "$versionUrl/Client"
+            $serverUrl = "$versionUrl/Server"
+
+            if (-not $resolvedCP)  { $resolvedCP  = "$clientUrl/$selectedClientVersion/ClientProvisioning.zip" }
+            if (-not $resolvedCS)  { $resolvedCS  = "$clientUrl/$selectedClientVersion/ClientSoftware.zip" }
+            if (-not $resolvedNCS) { $resolvedNCS = "$serverUrl/$selectedServerVersion/NCS.zip" }
+        }
+
+        if ($mode -ne 'online-select' -and (-not $resolvedCP -or -not $resolvedCS -or -not $resolvedNCS)) {
             $latestVer  = Get-LatestFolder $baseUrl 'version'
             $versionUrl = "$baseUrl/$latestVer"
 
@@ -1297,9 +1393,60 @@ $sbFullUpdate = [scriptblock]::Create(
 # Mode radio toggles
 $rbModeInstall.Add_Checked({ Update-OperationModeUI })
 $rbModeUpdate.Add_Checked({ Update-OperationModeUI })
-$rbOnlineCustom.Add_Checked({ $pnlCustomUrls.Visibility  = 'Visible';   $pnlOfflinePath.Visibility = 'Collapsed' })
-$rbOffline.Add_Checked({      $pnlOfflinePath.Visibility = 'Visible';   $pnlCustomUrls.Visibility  = 'Collapsed' })
-$rbOnlineAuto.Add_Checked({   $pnlCustomUrls.Visibility  = 'Collapsed'; $pnlOfflinePath.Visibility = 'Collapsed' })
+$rbOnlineSelect.Add_Checked({ Update-SourceModeUI })
+$rbOnlineCustom.Add_Checked({ Update-SourceModeUI })
+$rbOffline.Add_Checked({ Update-SourceModeUI })
+$rbOnlineAuto.Add_Checked({ Update-SourceModeUI })
+
+$btnDiscoverVersions.Add_Click({
+    try {
+        $btnDiscoverVersions.IsEnabled = $false
+        Set-Status 'Discovering online versions...' 12
+        Add-LogEntry 'Discovering available online client/server versions...' 'CYAN'
+
+        $baseUrl = 'http://update.nixxis.net'
+        $baseFolders = Get-DiscoveredWebFolders -Url $baseUrl
+        $selectedBase = Get-LatestVersionValue -Values $baseFolders
+        if (-not $selectedBase) {
+            throw 'Could not discover a base version from update.nixxis.net'
+        }
+
+        $sync.SelectedBaseVersion = $selectedBase
+        $tbDiscoveredBaseVersion.Text = "Base version: $selectedBase"
+
+        $clientFolders = Get-DiscoveredWebFolders -Url "$baseUrl/$selectedBase/Client"
+        $serverFolders = Get-DiscoveredWebFolders -Url "$baseUrl/$selectedBase/Server"
+
+        $clientSorted = $clientFolders | Sort-Object {
+            $v = $_ -replace '[^\d\.]', ''
+            try { [version]$v } catch { [version]'0.0' }
+        }
+        $serverSorted = $serverFolders | Sort-Object {
+            $v = $_ -replace '[^\d\.]', ''
+            try { [version]$v } catch { [version]'0.0' }
+        }
+
+        $cbClientVersion.Items.Clear()
+        foreach ($v in $clientSorted) { [void]$cbClientVersion.Items.Add($v) }
+        $cbServerVersion.Items.Clear()
+        foreach ($v in $serverSorted) { [void]$cbServerVersion.Items.Add($v) }
+
+        if ($cbClientVersion.Items.Count -gt 0) { $cbClientVersion.SelectedIndex = $cbClientVersion.Items.Count - 1 }
+        if ($cbServerVersion.Items.Count -gt 0) { $cbServerVersion.SelectedIndex = $cbServerVersion.Items.Count - 1 }
+
+        Add-LogEntry "Discovered base version: $selectedBase" 'OK'
+        Add-LogEntry "Client versions found: $($cbClientVersion.Items.Count)" 'OK'
+        Add-LogEntry "Server versions found: $($cbServerVersion.Items.Count)" 'OK'
+        Set-Status 'Version discovery complete.' 100
+    }
+    catch {
+        Add-LogEntry "Version discovery failed: $($_.Exception.Message)" 'ERROR'
+        Set-Status 'Version discovery failed.' 0
+    }
+    finally {
+        $btnDiscoverVersions.IsEnabled = $true
+    }
+})
 
 # WorkDir picker
 $btnBrowseWork.Add_Click({
@@ -1331,6 +1478,18 @@ $tbWorkDir.Add_TextChanged({
 
 $tbInstallPath.Add_TextChanged({
     $sync.InstallPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+})
+
+$cbClientVersion.Add_SelectionChanged({
+    if ($cbClientVersion.SelectedItem) {
+        $sync.SelectedClientVersion = [string]$cbClientVersion.SelectedItem
+    }
+})
+
+$cbServerVersion.Add_SelectionChanged({
+    if ($cbServerVersion.SelectedItem) {
+        $sync.SelectedServerVersion = [string]$cbServerVersion.SelectedItem
+    }
 })
 
 $tbServiceName.Add_TextChanged({
@@ -1411,9 +1570,13 @@ $btnLaunchDeployReports.Add_Click({Add-LogEntry '==== LAUNCH DEPLOY REPORTS ====
 #endregion
 
 #region --- Startup ---
+$window.Title = "NCS Installer / Updater v$script:AppVersion"
+$tbHeaderTitle.Text = 'NCS Installer / Updater'
+$tbHeaderSubtitle.Text = "Explicit flows for Fresh Install and Existing Update | v$script:AppVersion"
 Update-RunDirLabel
 Update-OperationModeUI
-Add-LogEntry 'Nixxis Maintenance Tool ready.' 'HEADER'
+Update-SourceModeUI
+Add-LogEntry "NCS Installer / Updater ready (v$script:AppVersion)." 'HEADER'
 Add-LogEntry "User: $env:USERNAME  |  Host: $env:COMPUTERNAME" 'GRAY'
 Add-LogEntry "Log file: $logFile" 'GRAY'
 Add-LogEntry "Default working directory: $($sync.WorkDir)" 'CYAN'
