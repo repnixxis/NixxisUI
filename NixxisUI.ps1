@@ -88,6 +88,11 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <Setter Property="Margin" Value="0,4"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#d4d4d4"/>
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
         <Style TargetType="Label">
             <Setter Property="Foreground" Value="#cccccc"/>
             <Setter Property="Padding" Value="2,2"/>
@@ -158,6 +163,23 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </StackPanel>
                     </GroupBox>
 
+                    <!-- Nixxis Install Path -->
+                    <GroupBox Header="  Nixxis Install Path  ">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="tbInstallPath" Grid.Column="0" Text="C:\Nixxis" FontSize="11"/>
+                                <Button x:Name="btnBrowseInstall" Grid.Column="1" Content="..." Width="34" Height="28"
+                                        Style="{StaticResource ActionBtn}" Margin="4,2,0,2" FontSize="13"/>
+                            </Grid>
+                            <TextBlock Foreground="#666" FontSize="10" TextWrapping="Wrap" Margin="2,2,0,0"
+                                       Text="This path is used for deploy, service install, tools, MoveFiles, firewall and reporting actions."/>
+                        </StackPanel>
+                    </GroupBox>
+
                     <!-- Source Mode -->
                     <GroupBox Header="  Source Mode  ">
                         <StackPanel>
@@ -219,12 +241,40 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </StackPanel>
                     </GroupBox>
 
+                    <!-- Initial Setup Options -->
+                    <GroupBox Header="  Initial Setup Options  ">
+                        <StackPanel>
+                            <CheckBox x:Name="cbEnsureDotNet48"       Content="Ensure .NET Framework 4.8" IsChecked="True"/>
+                            <CheckBox x:Name="cbInstallMoveFiles"     Content="Install MoveFiles service" IsChecked="True"/>
+                            <CheckBox x:Name="cbCreateReportingUser"  Content="Create local Reporting user" IsChecked="False"/>
+                            <CheckBox x:Name="cbConfigureFirewall"    Content="Create firewall rules (TCP/UDP)" IsChecked="True"/>
+                            <CheckBox x:Name="cbDeployTranscription"  Content="Deploy transcription helper files" IsChecked="False"/>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <!-- Initial Setup Steps -->
+                    <GroupBox Header="  Initial Setup Steps  ">
+                        <StackPanel>
+                            <Button x:Name="btnRunInitialSetup"       Content="Run Initial Setup (Install Script Parity)" Style="{StaticResource PrimaryBtn}" Height="38" FontSize="12"/>
+                            <Separator/>
+                            <Button x:Name="btnEnsureDotNet48"        Content="Check / Install .NET Framework 4.8" Style="{StaticResource ActionBtn}" Height="31"/>
+                            <Button x:Name="btnInstallService"        Content="Install CrAppServer Service"      Style="{StaticResource ActionBtn}" Height="31"/>
+                            <Button x:Name="btnCopyTools"             Content="Copy Tools Folder"                 Style="{StaticResource ActionBtn}" Height="31"/>
+                            <Button x:Name="btnInstallMoveFiles"      Content="Install MoveFiles Service"         Style="{StaticResource ActionBtn}" Height="31"/>
+                            <Button x:Name="btnCreateReportingUser"   Content="Create Reporting Local User"       Style="{StaticResource ActionBtn}" Height="31"/>
+                            <Button x:Name="btnConfigFirewall"        Content="Configure Firewall Rules"          Style="{StaticResource ActionBtn}" Height="31"/>
+                            <Button x:Name="btnDeployTranscription"   Content="Deploy Transcription Helpers"      Style="{StaticResource ActionBtn}" Height="31"/>
+                            <Button x:Name="btnLaunchDeployReports"   Content="Launch DeployReports.exe"         Style="{StaticResource GreenBtn}"  Height="31"/>
+                        </StackPanel>
+                    </GroupBox>
+
                     <!-- Quick Actions -->
                     <GroupBox Header="  Quick Actions  ">
-                        <UniformGrid Columns="1" Rows="3">
+                        <UniformGrid Columns="1" Rows="4">
                             <Button x:Name="btnOpenWork"    Content="Open Working Directory" Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
                             <Button x:Name="btnOpenLogs"    Content="Open Logs Folder"       Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
-                            <Button x:Name="btnOpenNixxis"  Content="Browse C:\Nixxis"        Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
+                            <Button x:Name="btnOpenNixxis"  Content="Open Install Folder"      Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
+                            <Button x:Name="btnOpenReportBin" Content="Open Reporting Bin Hint" Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
                         </UniformGrid>
                     </GroupBox>
 
@@ -303,9 +353,12 @@ $tbNCSUrl        = ctrl 'tbNCSUrl'
 $tbOfflinePath   = ctrl 'tbOfflinePath'
 $tbWorkDir       = ctrl 'tbWorkDir'
 $tbRunDir        = ctrl 'tbRunDir'
+$tbInstallPath   = ctrl 'tbInstallPath'
 $btnBrowseWork   = ctrl 'btnBrowseWork'
+$btnBrowseInstall= ctrl 'btnBrowseInstall'
 $btnBrowseOffline= ctrl 'btnBrowseOffline'
 $btnRunFull      = ctrl 'btnRunFull'
+$btnRunInitialSetup = ctrl 'btnRunInitialSetup'
 $btnDownload     = ctrl 'btnDownload'
 $btnPrepare      = ctrl 'btnPrepare'
 $btnStopService  = ctrl 'btnStopService'
@@ -313,10 +366,24 @@ $btnBackup       = ctrl 'btnBackup'
 $btnCleanup      = ctrl 'btnCleanup'
 $btnDeploy       = ctrl 'btnDeploy'
 $btnStartService = ctrl 'btnStartService'
+$btnInstallService = ctrl 'btnInstallService'
+$btnEnsureDotNet48 = ctrl 'btnEnsureDotNet48'
+$btnCopyTools      = ctrl 'btnCopyTools'
+$btnInstallMoveFiles = ctrl 'btnInstallMoveFiles'
+$btnCreateReportingUser = ctrl 'btnCreateReportingUser'
+$btnConfigFirewall = ctrl 'btnConfigFirewall'
+$btnDeployTranscription = ctrl 'btnDeployTranscription'
+$btnLaunchDeployReports = ctrl 'btnLaunchDeployReports'
+$cbEnsureDotNet48 = ctrl 'cbEnsureDotNet48'
+$cbInstallMoveFiles = ctrl 'cbInstallMoveFiles'
+$cbCreateReportingUser = ctrl 'cbCreateReportingUser'
+$cbConfigureFirewall = ctrl 'cbConfigureFirewall'
+$cbDeployTranscription = ctrl 'cbDeployTranscription'
 $btnRefreshStatus= ctrl 'btnRefreshStatus'
 $btnOpenWork     = ctrl 'btnOpenWork'
 $btnOpenLogs     = ctrl 'btnOpenLogs'
 $btnOpenNixxis   = ctrl 'btnOpenNixxis'
+$btnOpenReportBin= ctrl 'btnOpenReportBin'
 $btnClearLog     = ctrl 'btnClearLog'
 $btnSaveLog      = ctrl 'btnSaveLog'
 $rtbLog          = ctrl 'rtbLog'
@@ -327,7 +394,10 @@ $tbServiceStatus = ctrl 'tbServiceStatus'
 $ellServiceDot   = ctrl 'ellServiceDot'
 $tbLogFile       = ctrl 'tbLogFile'
 
-$allOpButtons = @($btnRunFull,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService)
+$allOpButtons = @(
+    $btnRunFull,$btnRunInitialSetup,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService,
+    $btnEnsureDotNet48,$btnInstallService,$btnCopyTools,$btnInstallMoveFiles,$btnCreateReportingUser,$btnConfigFirewall,$btnDeployTranscription,$btnLaunchDeployReports
+)
 #endregion
 
 #region --- Shared State ---
@@ -335,6 +405,7 @@ $sync = [hashtable]::Synchronized(@{
     Queue   = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
     Busy    = $false
     WorkDir = 'C:\NixxisMaintenance\Update'
+    InstallPath = 'C:\Nixxis'
     RunDir  = ''
     LogLines= [System.Collections.Generic.List[string]]::new()
 })
@@ -444,7 +515,14 @@ function Start-NixxisJob {
     $csUrl     = $tbCSUrl.Text.Trim()
     $ncsUrl    = $tbNCSUrl.Text.Trim()
     $offPath   = $tbOfflinePath.Text.Trim()
+    $installPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+    $optEnsureDotNet48 = [bool]$cbEnsureDotNet48.IsChecked
+    $optInstallMoveFiles = [bool]$cbInstallMoveFiles.IsChecked
+    $optCreateReportingUser = [bool]$cbCreateReportingUser.IsChecked
+    $optConfigureFirewall = [bool]$cbConfigureFirewall.IsChecked
+    $optDeployTranscription = [bool]$cbDeployTranscription.IsChecked
     $runDir    = $sync.RunDir
+    $sync.InstallPath = $installPath
 
     $rs = [runspacefactory]::CreateRunspace()
     $rs.ApartmentState = 'STA'
@@ -457,6 +535,12 @@ function Start-NixxisJob {
     $rs.SessionStateProxy.SetVariable('csUrl',   $csUrl)
     $rs.SessionStateProxy.SetVariable('ncsUrl',  $ncsUrl)
     $rs.SessionStateProxy.SetVariable('offlinePath', $offPath)
+    $rs.SessionStateProxy.SetVariable('installPath', $installPath)
+    $rs.SessionStateProxy.SetVariable('optEnsureDotNet48', $optEnsureDotNet48)
+    $rs.SessionStateProxy.SetVariable('optInstallMoveFiles', $optInstallMoveFiles)
+    $rs.SessionStateProxy.SetVariable('optCreateReportingUser', $optCreateReportingUser)
+    $rs.SessionStateProxy.SetVariable('optConfigureFirewall', $optConfigureFirewall)
+    $rs.SessionStateProxy.SetVariable('optDeployTranscription', $optDeployTranscription)
     $rs.SessionStateProxy.SetVariable('runDir',  $runDir)
 
     $ps = [powershell]::Create()
@@ -609,6 +693,69 @@ $sbPrepare = {
     Write-BgLog '=== PREPARE / EXTRACT PHASE ===' 'HEADER'
     Write-BgLog "Source folder: $runDir" 'CYAN'
 
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    function Expand-ZipRobust {
+        param(
+            [Parameter(Mandatory = $true)][string]$ZipPath,
+            [Parameter(Mandatory = $true)][string]$DestinationPath
+        )
+
+        try {
+            if (-not (Test-Path $DestinationPath)) {
+                New-Item -Path $DestinationPath -ItemType Directory -Force | Out-Null
+            }
+
+            $stream = [System.IO.File]::OpenRead($ZipPath)
+            try {
+                $archive = New-Object System.IO.Compression.ZipArchive(
+                    $stream,
+                    [System.IO.Compression.ZipArchiveMode]::Read,
+                    $false,
+                    [System.Text.Encoding]::UTF8
+                )
+                try {
+                    foreach ($entry in $archive.Entries) {
+                        $entryDestPath = Join-Path -Path $DestinationPath -ChildPath $entry.FullName
+                        if ($entry.FullName.EndsWith('/') -or $entry.FullName.EndsWith('\\')) {
+                            New-Item -Path $entryDestPath -ItemType Directory -Force | Out-Null
+                            continue
+                        }
+
+                        $parentDir = Split-Path -Parent $entryDestPath
+                        if (-not (Test-Path $parentDir)) {
+                            New-Item -Path $parentDir -ItemType Directory -Force | Out-Null
+                        }
+
+                        $entryStream = $entry.Open()
+                        try {
+                            $fileStream = [System.IO.File]::Create($entryDestPath)
+                            try {
+                                $entryStream.CopyTo($fileStream)
+                            }
+                            finally {
+                                $fileStream.Dispose()
+                            }
+                        }
+                        finally {
+                            $entryStream.Dispose()
+                        }
+                    }
+                }
+                finally {
+                    $archive.Dispose()
+                }
+            }
+            finally {
+                $stream.Dispose()
+            }
+        }
+        catch {
+            Expand-Archive -Path $ZipPath -DestinationPath $DestinationPath -Force
+        }
+    }
+
     foreach ($z in @('NCS.zip','ClientProvisioning.zip','ClientSoftware.zip')) {
         if (-not (Test-Path (Join-Path $runDir $z))) { throw "Required ZIP not found in run folder: $z`nExpected in: $runDir" }
     }
@@ -622,13 +769,13 @@ $sbPrepare = {
     Write-BgLog "Created staging folder: $appServer" 'OK'
 
     Write-BgLog "Extracting NCS.zip..." 'CYAN'
-    Expand-Archive (Join-Path $runDir 'NCS.zip') -DestinationPath $appServer -Force
+    Expand-ZipRobust -ZipPath (Join-Path $runDir 'NCS.zip') -DestinationPath $appServer
     Write-BgLog "  Done" 'OK'
 
     $csDest = Join-Path $appServer 'ClientSoftware'
     New-Item $csDest -ItemType Directory -Force | Out-Null
     Write-BgLog "Extracting ClientSoftware.zip..." 'CYAN'
-    Expand-Archive (Join-Path $runDir 'ClientSoftware.zip') -DestinationPath $csDest -Force
+    Expand-ZipRobust -ZipPath (Join-Path $runDir 'ClientSoftware.zip') -DestinationPath $csDest
     Write-BgLog "  Done" 'OK'
 
     $provPath   = Join-Path $appServer 'CrAppServer\provisioning'
@@ -637,7 +784,7 @@ $sbPrepare = {
     Copy-Item (Join-Path $runDir 'ClientSoftware.zip') $provPath -Force
 
     Write-BgLog "Extracting ClientProvisioning.zip..." 'CYAN'
-    Expand-Archive (Join-Path $runDir 'ClientProvisioning.zip') -DestinationPath $provClient -Force
+    Expand-ZipRobust -ZipPath (Join-Path $runDir 'ClientProvisioning.zip') -DestinationPath $provClient
     Write-BgLog "  Done" 'OK'
 
     $settingsSrc = Join-Path $provClient 'settings'
@@ -696,7 +843,7 @@ $sbBackup = {
     }
     Write-BgLog "Backup destination: $dest" 'CYAN'
 
-    foreach ($src in @('C:\Nixxis\CrAppServer', 'C:\Nixxis\ClientSoftware')) {
+    foreach ($src in @((Join-Path $installPath 'CrAppServer'), (Join-Path $installPath 'ClientSoftware'))) {
         if (Test-Path $src) {
             $name = Split-Path $src -Leaf
             Write-BgLog "Backing up $name..." 'CYAN'
@@ -709,7 +856,7 @@ $sbBackup = {
 
 $sbCleanup = {
     Write-BgLog '=== CLEANUP PHASE ===' 'HEADER'
-    $base = 'C:\Nixxis\CrAppServer'
+    $base = Join-Path $installPath 'CrAppServer'
     if (-not (Test-Path $base)) {
         Write-BgLog "CrAppServer not found at $base — nothing to clean." 'WARN'
     } else {
@@ -745,7 +892,7 @@ $sbCleanup = {
             }
         }
     }
-    $cs = 'C:\Nixxis\ClientSoftware'
+    $cs = Join-Path $installPath 'ClientSoftware'
     if (Test-Path $cs) {
         Remove-Item $cs -Recurse -Force -ErrorAction SilentlyContinue
         Write-BgLog "Removed ClientSoftware folder" 'OK'
@@ -758,13 +905,17 @@ $sbDeploy = {
     $appServer = Join-Path $runDir 'NixxisApplicationServer'
     if (-not (Test-Path $appServer)) { throw "NixxisApplicationServer not found in run folder. Run Prepare step first.`nExpected: $appServer" }
 
+    if (-not (Test-Path $installPath)) {
+        New-Item -Path $installPath -ItemType Directory -Force | Out-Null
+        Write-BgLog "Created install root: $installPath" 'OK'
+    }
+
     foreach ($f in @(
-        @{ S='ClientSoftware';   D='C:\Nixxis\ClientSoftware'   },
-        @{ S='CrAppServer';      D='C:\Nixxis\CrAppServer'      },
-        @{ S='MediaServer';      D='C:\Nixxis\MediaServer'       },
-        @{ S='Reporting';        D='C:\Nixxis\Reporting'         },
-        @{ S='SampleConfigFiles';D='C:\Nixxis\SampleConfigFiles' },
-        @{ S='SoundsSamples';    D='C:\Nixxis\SoundsSamples'     }
+        @{ S='ClientSoftware';   D=(Join-Path $installPath 'ClientSoftware') },
+        @{ S='CrAppServer';      D=(Join-Path $installPath 'CrAppServer')    },
+        @{ S='MediaServer';      D=(Join-Path $installPath 'MediaServer')    },
+        @{ S='Reporting';        D=(Join-Path $installPath 'Reporting')      },
+        @{ S='SoundsSamples';    D=(Join-Path $installPath 'SoundsSamples')  }
     )) {
         $src = Join-Path $appServer $f.S
         if (Test-Path $src) {
@@ -774,6 +925,38 @@ $sbDeploy = {
             Write-BgLog "  Done" 'OK'
         } else { Write-BgLog "Source not found in staging: $($f.S) — skipping." 'WARN' }
     }
+
+    $sampleSource = Join-Path $appServer 'SampleConfigFiles'
+    $sampleDestination = Join-Path $installPath 'CrAppServer'
+    if (Test-Path $sampleSource) {
+        Write-BgLog "Processing SampleConfigFiles -> $sampleDestination" 'CYAN'
+        $copied = 0
+        $skipped = 0
+        Get-ChildItem -Path $sampleSource -File -Recurse | ForEach-Object {
+            if ($_.Name -like 'NCC*') {
+                $skipped++
+                return
+            }
+
+            $relativePath = $_.FullName.Substring($sampleSource.Length).TrimStart('\\','/')
+            $destRelative = if ($relativePath -match '\\.sample$') {
+                $relativePath -replace '\\.sample$', ''
+            } else {
+                $relativePath
+            }
+            $destFile = Join-Path $sampleDestination $destRelative
+            $destDir = Split-Path -Parent $destFile
+            if (-not (Test-Path $destDir)) {
+                New-Item -Path $destDir -ItemType Directory -Force | Out-Null
+            }
+            Copy-Item -Path $_.FullName -Destination $destFile -Force
+            $copied++
+        }
+        Write-BgLog "SampleConfigFiles complete: $copied copied, $skipped skipped" 'OK'
+    } else {
+        Write-BgLog 'SampleConfigFiles not found in staging - skipping.' 'WARN'
+    }
+
     Write-BgLog 'Deploy phase complete.' 'OK'
 }
 
@@ -786,6 +969,233 @@ $sbStartService = {
     $svc.Refresh()
     Write-BgLog "Service status: $($svc.Status)" $(if ($svc.Status -eq 'Running') { 'OK' } else { 'WARN' })
 }
+
+$sbEnsureDotNet48 = {
+    Write-BgLog '=== .NET FRAMEWORK 4.8 PHASE ===' 'HEADER'
+
+    function Get-DotNetRelease {
+        $regPath = 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full'
+        if (Test-Path $regPath) {
+            return [int]((Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue).Release)
+        }
+        return 0
+    }
+
+    $dotNet48Required = 528040
+    $dotNetRelease = Get-DotNetRelease
+    if ($dotNetRelease -ge $dotNet48Required) {
+        Write-BgLog ".NET Framework 4.8 already installed (release key: $dotNetRelease)" 'OK'
+        return
+    }
+
+    Write-BgLog '.NET Framework 4.8 not found. Downloading installer...' 'WARN'
+    $dotNet48Url = 'https://go.microsoft.com/fwlink/?LinkId=2085155'
+    $dotNet48Installer = Join-Path -Path $env:TEMP -ChildPath 'ndp48-x86-x64-allos-enu.exe'
+
+    $webClient48 = New-Object System.Net.WebClient
+    try {
+        $webClient48.DownloadFile($dotNet48Url, $dotNet48Installer)
+    }
+    finally {
+        $webClient48.Dispose()
+    }
+
+    Write-BgLog '.NET 4.8 installer downloaded. Installing (silent)...' 'CYAN'
+    $process = Start-Process -FilePath $dotNet48Installer -ArgumentList "/quiet /norestart /log `"$env:TEMP\dotnet48_install.log`"" -Wait -PassThru
+    if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+        throw "Installer exited with code $($process.ExitCode). See $env:TEMP\dotnet48_install.log"
+    }
+
+    Remove-Item -Path $dotNet48Installer -Force -ErrorAction SilentlyContinue
+    $dotNetRelease = Get-DotNetRelease
+    if ($dotNetRelease -ge $dotNet48Required) {
+        Write-BgLog '.NET Framework 4.8 installed successfully.' 'OK'
+        Write-BgLog 'A reboot is recommended before continuing service operations.' 'WARN'
+    } else {
+        throw '.NET 4.8 installation could not be verified.'
+    }
+}
+
+$sbInstallService = {
+    Write-BgLog '=== SERVICE INSTALLATION PHASE ===' 'HEADER'
+    $nixxisLogsPath = Join-Path $installPath 'Logs'
+    if (-not (Test-Path $nixxisLogsPath)) {
+        New-Item -Path $nixxisLogsPath -ItemType Directory -Force | Out-Null
+        Write-BgLog "Created Logs folder: $nixxisLogsPath" 'OK'
+    }
+
+    $crAppServerDir = Join-Path $installPath 'CrAppServer'
+    $crAppServerExe = Join-Path $crAppServerDir 'CrAppServer.exe'
+    if (-not (Test-Path $crAppServerExe)) {
+        throw "CrAppServer.exe not found at $crAppServerExe"
+    }
+
+    Push-Location $crAppServerDir
+    try {
+        $svcOutput = & $crAppServerExe -install 2>&1
+        foreach ($line in $svcOutput) {
+            Write-BgLog "  [CrAppServer] $line" 'GRAY'
+        }
+    }
+    finally {
+        Pop-Location
+    }
+    Write-BgLog 'Service installation phase complete.' 'OK'
+}
+
+$sbCopyTools = {
+    Write-BgLog '=== TOOLS COPY PHASE ===' 'HEADER'
+    $toolsSource = Join-Path (Join-Path $runDir 'NixxisApplicationServer') 'Tools'
+    $toolsDestination = Join-Path $installPath 'Tools'
+
+    if (-not (Test-Path $toolsSource)) {
+        throw "Tools source folder not found: $toolsSource"
+    }
+    if (-not (Test-Path $toolsDestination)) {
+        New-Item -Path $toolsDestination -ItemType Directory -Force | Out-Null
+    }
+    Copy-Item -Path "$toolsSource\*" -Destination $toolsDestination -Recurse -Force
+    Write-BgLog "Tools folder copied: $toolsDestination" 'OK'
+}
+
+$sbInstallMoveFiles = {
+    Write-BgLog '=== MOVEFILES INSTALL PHASE ===' 'HEADER'
+    $installDrive = Split-Path -Qualifier $installPath
+    $moveFilesExe = Join-Path $installPath 'Tools\MoveFiles\MoveFiles.exe'
+    $installUtilExe = "$installDrive\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe"
+
+    if (-not (Test-Path $moveFilesExe)) {
+        throw "MoveFiles.exe not found at $moveFilesExe"
+    }
+    if (-not (Test-Path $installUtilExe)) {
+        throw "installutil.exe not found at $installUtilExe"
+    }
+
+    $mfOutput = & $installUtilExe $moveFilesExe 2>&1
+    foreach ($line in $mfOutput) {
+        Write-BgLog "  [installutil] $line" 'GRAY'
+    }
+
+    $sampleXml = Join-Path $installPath 'Tools\MoveFiles\SampleMoveFiles.xml'
+    $targetXml = Join-Path $installPath 'Tools\MoveFiles\MoveFiles.xml'
+    if (Test-Path $sampleXml) {
+        if (Test-Path $targetXml) {
+            Remove-Item -Path $sampleXml -Force
+            Write-BgLog 'MoveFiles.xml already exists - removed SampleMoveFiles.xml' 'GRAY'
+        } else {
+            Rename-Item -Path $sampleXml -NewName 'MoveFiles.xml' -Force
+            Write-BgLog 'Renamed SampleMoveFiles.xml -> MoveFiles.xml' 'OK'
+        }
+    }
+
+    Write-BgLog "Action required: review MoveFiles configuration at $targetXml" 'WARN'
+    Write-BgLog 'MoveFiles installation phase complete.' 'OK'
+}
+
+$sbCreateReportingUser = {
+    Write-BgLog '=== REPORTING USER PHASE ===' 'HEADER'
+    $reportingUsername = 'Reporting'
+    $reportingPassword = ConvertTo-SecureString 'Rep0rting' -AsPlainText -Force
+
+    $existingUser = Get-LocalUser -Name $reportingUsername -ErrorAction SilentlyContinue
+    if ($existingUser) {
+        Write-BgLog "Local user '$reportingUsername' already exists - skipping." 'WARN'
+    } else {
+        New-LocalUser -Name $reportingUsername -Password $reportingPassword -PasswordNeverExpires -UserMayNotChangePassword -Description 'Nixxis Reporting Services account' | Out-Null
+        Write-BgLog "Local user '$reportingUsername' created." 'OK'
+    }
+}
+
+$sbConfigFirewall = {
+    Write-BgLog '=== FIREWALL PHASE ===' 'HEADER'
+    $crAppServerExeFw = Join-Path $installPath 'CrAppServer\CrAppServer.exe'
+    if (-not (Test-Path $crAppServerExeFw)) {
+        throw "CrAppServer.exe not found for firewall rule at $crAppServerExeFw"
+    }
+
+    foreach ($proto in @('TCP', 'UDP')) {
+        $ruleName = "Nixxis CrAppServer $proto"
+        Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+        New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Program $crAppServerExeFw -Protocol $proto -Action Allow -Profile Any | Out-Null
+        Write-BgLog "Firewall rule created: $ruleName" 'OK'
+    }
+}
+
+$sbDeployTranscription = {
+    Write-BgLog '=== TRANSCRIPTION HELPERS PHASE ===' 'HEADER'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    $transcriptDestination = Join-Path $installPath 'CrAppServer\provisioning\client'
+    $transcriptTempPath = Join-Path $runDir 'TranscriptClientHelpers'
+    $baseUrl = 'https://raw.githubusercontent.com/NixxisIntegration/TranscriptionClientHelpers/refs/heads/main'
+    $transcriptFiles = @(
+        'DarkTranscriptions.css',
+        'LightTranscriptions.css',
+        'defaultTranscriptions.css',
+        'handleTranscriptions.js',
+        'handleTranscriptions_en.js',
+        'handleTranscriptions_fr.js'
+    )
+
+    if (Test-Path $transcriptTempPath) {
+        Remove-Item -Path $transcriptTempPath -Recurse -Force
+    }
+    New-Item -Path $transcriptTempPath -ItemType Directory -Force | Out-Null
+    if (-not (Test-Path $transcriptDestination)) {
+        New-Item -Path $transcriptDestination -ItemType Directory -Force | Out-Null
+    }
+
+    foreach ($fileName in $transcriptFiles) {
+        $fileUrl = "$baseUrl/$fileName"
+        $tempFilePath = Join-Path $transcriptTempPath $fileName
+        Invoke-WebRequest -Uri $fileUrl -OutFile $tempFilePath -UseBasicParsing -TimeoutSec 60
+        Copy-Item -Path $tempFilePath -Destination (Join-Path $transcriptDestination $fileName) -Force
+        Write-BgLog "Deployed: $fileName" 'OK'
+    }
+
+    Remove-Item -Path $transcriptTempPath -Recurse -Force -ErrorAction SilentlyContinue
+    Write-BgLog 'Transcription helpers phase complete.' 'OK'
+}
+
+$sbLaunchDeployReports = {
+    Write-BgLog '=== DEPLOY REPORTS LAUNCH ===' 'HEADER'
+    $deployReportsExe = Join-Path $installPath 'Reporting\Deploy\DeployReports.exe'
+    if (Test-Path $deployReportsExe) {
+        Start-Process -FilePath $deployReportsExe
+        Write-BgLog "Launched: $deployReportsExe" 'OK'
+    } else {
+        throw "DeployReports.exe not found at $deployReportsExe"
+    }
+
+    Write-BgLog 'Manual action: copy contents of Reporting\ToCopyReportingServer into SQL Reporting Services ReportServer\bin.' 'WARN'
+}
+
+$sbInitialSetupFull = [scriptblock]::Create(
+    "if ($optEnsureDotNet48) {" + "`n" +
+    $sbEnsureDotNet48.ToString() + "`n" +
+    "} else { Write-BgLog 'Skipped .NET 4.8 check by option.' 'GRAY' }" + "`n" +
+    $sbDownload.ToString() + "`n" +
+    $sbPrepare.ToString() + "`n" +
+    $sbStopService.ToString() + "`n" +
+    $sbBackup.ToString() + "`n" +
+    $sbCleanup.ToString() + "`n" +
+    $sbDeploy.ToString() + "`n" +
+    $sbInstallService.ToString() + "`n" +
+    $sbCopyTools.ToString() + "`n" +
+    "if ($optInstallMoveFiles) {" + "`n" +
+    $sbInstallMoveFiles.ToString() + "`n" +
+    "} else { Write-BgLog 'Skipped MoveFiles installation by option.' 'GRAY' }" + "`n" +
+    "if ($optCreateReportingUser) {" + "`n" +
+    $sbCreateReportingUser.ToString() + "`n" +
+    "} else { Write-BgLog 'Skipped Reporting user creation by option.' 'GRAY' }" + "`n" +
+    "if ($optConfigureFirewall) {" + "`n" +
+    $sbConfigFirewall.ToString() + "`n" +
+    "} else { Write-BgLog 'Skipped firewall configuration by option.' 'GRAY' }" + "`n" +
+    "if ($optDeployTranscription) {" + "`n" +
+    $sbDeployTranscription.ToString() + "`n" +
+    "} else { Write-BgLog 'Skipped transcription helpers by option.' 'GRAY' }" + "`n" +
+    "Write-BgLog '=== INITIAL SETUP COMPLETE ===' 'OK'"
+)
 
 # Full update chains all phases in sequence
 $sbFullUpdate = [scriptblock]::Create(
@@ -819,10 +1229,24 @@ $btnBrowseWork.Add_Click({
     }
 })
 
+$btnBrowseInstall.Add_Click({
+    $dlg = [System.Windows.Forms.FolderBrowserDialog]::new()
+    $dlg.Description = 'Select Nixxis install directory'
+    $dlg.SelectedPath = $tbInstallPath.Text
+    if ($dlg.ShowDialog() -eq 'OK') {
+        $tbInstallPath.Text = $dlg.SelectedPath.TrimEnd('\\')
+        $sync.InstallPath = $tbInstallPath.Text
+    }
+})
+
 # WorkDir text change — keep sync live
 $tbWorkDir.Add_TextChanged({
     $sync.WorkDir = $tbWorkDir.Text.Trim()
     Update-RunDirLabel
+})
+
+$tbInstallPath.Add_TextChanged({
+    $sync.InstallPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
 })
 
 # Offline folder picker
@@ -859,11 +1283,19 @@ $btnOpenLogs.Add_Click({
     else { Add-LogEntry "Logs folder not yet created." 'WARN' }
 })
 $btnOpenNixxis.Add_Click({
-    if (Test-Path 'C:\Nixxis') { Start-Process explorer 'C:\Nixxis' }
-    else { Add-LogEntry "C:\Nixxis not found on this machine." 'WARN' }
+    $p = $tbInstallPath.Text.Trim().TrimEnd('\\')
+    if (Test-Path $p) { Start-Process explorer $p }
+    else { Add-LogEntry "Install path not found: $p" 'WARN' }
+})
+$btnOpenReportBin.Add_Click({
+    $reportPath = Join-Path $tbInstallPath.Text.Trim().TrimEnd('\\') 'Reporting\ToCopyReportingServer'
+    if (Test-Path $reportPath) { Start-Process explorer $reportPath }
+    else { Add-LogEntry "Reporting helper folder not found: $reportPath" 'WARN' }
 })
 
 # Operation buttons
+$btnRunInitialSetup.Add_Click({    Add-LogEntry '==== INITIAL SETUP ====' 'HEADER';   Set-Status 'Running initial setup...' 0; Start-NixxisJob $sbInitialSetupFull 'Initial Setup' })
+$btnEnsureDotNet48.Add_Click({     Add-LogEntry '==== ENSURE .NET 4.8 ====' 'HEADER'; Set-Status 'Checking .NET...' 0; Start-NixxisJob $sbEnsureDotNet48 'Ensure .NET 4.8' })
 $btnRunFull.Add_Click({     Add-LogEntry '==== FULL UPDATE ====' 'HEADER';   Set-Status 'Running full update...' 0;  Start-NixxisJob $sbFullUpdate    'Full Update'   })
 $btnDownload.Add_Click({    Add-LogEntry '==== DOWNLOAD ====' 'HEADER';      Set-Status 'Downloading ZIPs...' 0;    Start-NixxisJob $sbDownload      'Download'      })
 $btnPrepare.Add_Click({     Add-LogEntry '==== PREPARE ====' 'HEADER';       Set-Status 'Preparing files...' 0;     Start-NixxisJob $sbPrepare       'Prepare'       })
@@ -872,6 +1304,13 @@ $btnBackup.Add_Click({      Add-LogEntry '==== BACKUP ====' 'HEADER';        Set
 $btnCleanup.Add_Click({     Add-LogEntry '==== CLEANUP ====' 'HEADER';       Set-Status 'Cleaning up...' 0;        Start-NixxisJob $sbCleanup       'Cleanup'       })
 $btnDeploy.Add_Click({      Add-LogEntry '==== DEPLOY ====' 'HEADER';        Set-Status 'Deploying...' 0;          Start-NixxisJob $sbDeploy        'Deploy'        })
 $btnStartService.Add_Click({Add-LogEntry '==== START SERVICE ====' 'HEADER'; Set-Status 'Starting service...' 0;   Start-NixxisJob $sbStartService  'Start Service' })
+$btnInstallService.Add_Click({     Add-LogEntry '==== INSTALL SERVICE ====' 'HEADER'; Set-Status 'Installing service...' 0; Start-NixxisJob $sbInstallService 'Install Service' })
+$btnCopyTools.Add_Click({          Add-LogEntry '==== COPY TOOLS ====' 'HEADER';      Set-Status 'Copying tools...' 0;      Start-NixxisJob $sbCopyTools 'Copy Tools' })
+$btnInstallMoveFiles.Add_Click({   Add-LogEntry '==== INSTALL MOVEFILES ====' 'HEADER'; Set-Status 'Installing MoveFiles...' 0; Start-NixxisJob $sbInstallMoveFiles 'Install MoveFiles' })
+$btnCreateReportingUser.Add_Click({Add-LogEntry '==== CREATE REPORTING USER ====' 'HEADER'; Set-Status 'Creating Reporting user...' 0; Start-NixxisJob $sbCreateReportingUser 'Create Reporting User' })
+$btnConfigFirewall.Add_Click({     Add-LogEntry '==== CONFIG FIREWALL ====' 'HEADER'; Set-Status 'Configuring firewall...' 0; Start-NixxisJob $sbConfigFirewall 'Configure Firewall' })
+$btnDeployTranscription.Add_Click({Add-LogEntry '==== DEPLOY TRANSCRIPTION ====' 'HEADER'; Set-Status 'Deploying transcription helpers...' 0; Start-NixxisJob $sbDeployTranscription 'Deploy Transcription Helpers' })
+$btnLaunchDeployReports.Add_Click({Add-LogEntry '==== LAUNCH DEPLOY REPORTS ====' 'HEADER'; Set-Status 'Launching DeployReports...' 0; Start-NixxisJob $sbLaunchDeployReports 'Launch DeployReports' })
 #endregion
 
 #region --- Startup ---
@@ -880,6 +1319,7 @@ Add-LogEntry 'Nixxis Maintenance Tool ready.' 'HEADER'
 Add-LogEntry "User: $env:USERNAME  |  Host: $env:COMPUTERNAME" 'GRAY'
 Add-LogEntry "Log file: $logFile" 'GRAY'
 Add-LogEntry "Default working directory: $($sync.WorkDir)" 'CYAN'
+Add-LogEntry "Install path: $($sync.InstallPath)" 'CYAN'
 Add-LogEntry "A dated subfolder (YYYYMMDD) will be created in that directory on each run." 'GRAY'
 Add-LogEntry '' 'INFO'
 Update-ServiceStatus
