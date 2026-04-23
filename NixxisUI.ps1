@@ -118,6 +118,139 @@ $script:AppVersion = '1.2'
             <Setter Property="Background" Value="#2c3a46"/>
             <Setter Property="Margin" Value="0,4"/>
         </Style>
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="#131b24"/>
+            <Setter Property="Foreground" Value="#e6edf3"/>
+            <Setter Property="BorderBrush" Value="#3b4d5f"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="#d8e3ee"/>
+            <Setter Property="Background" Value="#1a2430"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="tabBd" Background="{TemplateBinding Background}" BorderBrush="#3b4d5f" BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="tabBd" Property="Background" Value="#243445"/>
+                                <Setter Property="Foreground" Value="#ffffff"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="tabBd" Property="Background" Value="#223140"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ListView">
+            <Setter Property="Background" Value="#151f2a"/>
+            <Setter Property="Foreground" Value="#e6edf3"/>
+            <Setter Property="BorderBrush" Value="#3b4d5f"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="ListViewItem">
+            <Setter Property="Foreground" Value="#e6edf3"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="3,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Border x:Name="lvItemBd" Background="{TemplateBinding Background}" BorderBrush="Transparent" BorderThickness="0" Padding="{TemplateBinding Padding}">
+                            <GridViewRowPresenter VerticalAlignment="Center" Content="{TemplateBinding Content}" Columns="{TemplateBinding GridView.ColumnCollection}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="lvItemBd" Property="Background" Value="#284057"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="lvItemBd" Property="Background" Value="#1d2d3c"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PlanRowStyle" TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Badge}" Value="CREATE">
+                    <Setter Property="Background" Value="#173228"/>
+                    <Setter Property="Foreground" Value="#d9ffee"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Badge}" Value="OVERWRITE">
+                    <Setter Property="Background" Value="#3a3118"/>
+                    <Setter Property="Foreground" Value="#fff1c4"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Badge}" Value="DELETE">
+                    <Setter Property="Background" Value="#3d1f29"/>
+                    <Setter Property="Foreground" Value="#ffdbe0"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Badge}" Value="SKIP">
+                    <Setter Property="Background" Value="#25313f"/>
+                    <Setter Property="Foreground" Value="#dbe7f3"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RiskRowStyle" TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="GREEN">
+                    <Setter Property="Background" Value="#173228"/>
+                    <Setter Property="Foreground" Value="#d9ffee"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="YELLOW">
+                    <Setter Property="Background" Value="#3a3118"/>
+                    <Setter Property="Foreground" Value="#fff1c4"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="RED">
+                    <Setter Property="Background" Value="#3d1f29"/>
+                    <Setter Property="Foreground" Value="#ffdbe0"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ValidationRowStyle" TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="PASS">
+                    <Setter Property="Background" Value="#173228"/>
+                    <Setter Property="Foreground" Value="#d9ffee"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="WARN">
+                    <Setter Property="Background" Value="#3a3118"/>
+                    <Setter Property="Foreground" Value="#fff1c4"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="FAIL">
+                    <Setter Property="Background" Value="#3d1f29"/>
+                    <Setter Property="Foreground" Value="#ffdbe0"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="TimelineRowStyle" TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding State}" Value="In Progress">
+                    <Setter Property="Background" Value="#183349"/>
+                    <Setter Property="Foreground" Value="#d8ecff"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding State}" Value="Done">
+                    <Setter Property="Background" Value="#173228"/>
+                    <Setter Property="Foreground" Value="#d9ffee"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding State}" Value="Pending">
+                    <Setter Property="Background" Value="#25313f"/>
+                    <Setter Property="Foreground" Value="#dbe7f3"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="GridViewColumnHeader">
+            <Setter Property="Background" Value="#1c2a38"/>
+            <Setter Property="Foreground" Value="#f2f7fb"/>
+            <Setter Property="BorderBrush" Value="#3b4d5f"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -351,10 +484,10 @@ $script:AppVersion = '1.2'
                     </Grid>
                 </Border>
 
-                <TabControl x:Name="tcOps" Grid.Row="1" Background="#0b1117" BorderBrush="#2c3a46" BorderThickness="1">
+                <TabControl x:Name="tcOps" Grid.Row="1" Background="#131b24" BorderBrush="#3b4d5f" BorderThickness="1">
                     <TabItem Header="Log">
                         <RichTextBox x:Name="rtbLog"
-                                     Background="#0b1117" Foreground="#c8d3dd"
+                                     Background="#151f2a" Foreground="#f3f7fb"
                                      BorderThickness="0"
                                      IsReadOnly="True"
                                      FontFamily="Consolas,Courier New" FontSize="12"
@@ -377,11 +510,11 @@ $script:AppVersion = '1.2'
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal">
                                 <Button x:Name="btnGeneratePlan" Content="Generate Plan" Style="{StaticResource ActionBtn}" Width="120"/>
-                                <TextBlock x:Name="tbPlanSummary" Foreground="#b8c6d3" Margin="10,6,0,0" Text="Plan not generated."/>
+                                <TextBlock x:Name="tbPlanSummary" Foreground="#e6edf3" Margin="10,6,0,0" Text="Plan not generated."/>
                             </StackPanel>
                             <CheckBox x:Name="chkPlanApproved" Grid.Row="1" Margin="2,6,0,4" Content="I reviewed and approve this plan"/>
-                            <TextBlock Grid.Row="2" Foreground="#7f93a7" FontSize="10" Text="Badges: Create / Overwrite / Delete / Skip"/>
-                            <ListView x:Name="lvPlan" Grid.Row="3" Margin="0,6,0,0" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                            <TextBlock Grid.Row="2" Foreground="#b6c7d8" FontSize="10" Text="Badges: Create / Overwrite / Delete / Skip"/>
+                            <ListView x:Name="lvPlan" Grid.Row="3" Margin="0,6,0,0" Background="#151f2a" BorderBrush="#3b4d5f" BorderThickness="1" ItemContainerStyle="{StaticResource PlanRowStyle}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="Badge" Width="85" DisplayMemberBinding="{Binding Badge}"/>
@@ -402,9 +535,9 @@ $script:AppVersion = '1.2'
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal">
                                 <Button x:Name="btnRunPreflight" Content="Run Preflight" Style="{StaticResource ActionBtn}" Width="120"/>
-                                <TextBlock x:Name="tbPreflightSummary" Foreground="#b8c6d3" Margin="10,6,0,0" Text="Preflight not run."/>
+                                <TextBlock x:Name="tbPreflightSummary" Foreground="#e6edf3" Margin="10,6,0,0" Text="Preflight not run."/>
                             </StackPanel>
-                            <ListView x:Name="lvPreflight" Grid.Row="1" Margin="0,8,0,0" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                            <ListView x:Name="lvPreflight" Grid.Row="1" Margin="0,8,0,0" Background="#151f2a" BorderBrush="#3b4d5f" BorderThickness="1" ItemContainerStyle="{StaticResource RiskRowStyle}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="Status" Width="85" DisplayMemberBinding="{Binding Status}"/>
@@ -428,11 +561,11 @@ $script:AppVersion = '1.2'
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock x:Name="tbTimelineCurrent" Grid.Column="0" Foreground="#b8c6d3" Text="Current: -"/>
-                                <TextBlock x:Name="tbTimelineNext" Grid.Column="1" Foreground="#b8c6d3" Text="Next: -"/>
-                                <TextBlock x:Name="tbTimelineEta" Grid.Column="2" Foreground="#b8c6d3" Text="ETA: -" HorizontalAlignment="Right"/>
+                                <TextBlock x:Name="tbTimelineCurrent" Grid.Column="0" Foreground="#e6edf3" Text="Current: -"/>
+                                <TextBlock x:Name="tbTimelineNext" Grid.Column="1" Foreground="#e6edf3" Text="Next: -"/>
+                                <TextBlock x:Name="tbTimelineEta" Grid.Column="2" Foreground="#e6edf3" Text="ETA: -" HorizontalAlignment="Right"/>
                             </Grid>
-                            <ListView x:Name="lvTimeline" Grid.Row="1" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                            <ListView x:Name="lvTimeline" Grid.Row="1" Background="#151f2a" BorderBrush="#3b4d5f" BorderThickness="1" ItemContainerStyle="{StaticResource TimelineRowStyle}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="Step" Width="250" DisplayMemberBinding="{Binding Step}"/>
@@ -454,9 +587,9 @@ $script:AppVersion = '1.2'
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal">
                                 <Button x:Name="btnRunValidation" Content="Run Post-Install Validation" Style="{StaticResource ActionBtn}" Width="190"/>
-                                <TextBlock x:Name="tbValidationSummary" Foreground="#b8c6d3" Margin="10,6,0,0" Text="Validation not run."/>
+                                <TextBlock x:Name="tbValidationSummary" Foreground="#e6edf3" Margin="10,6,0,0" Text="Validation not run."/>
                             </StackPanel>
-                            <ListView x:Name="lvValidation" Grid.Row="1" Margin="0,8,0,0" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                            <ListView x:Name="lvValidation" Grid.Row="1" Margin="0,8,0,0" Background="#151f2a" BorderBrush="#3b4d5f" BorderThickness="1" ItemContainerStyle="{StaticResource ValidationRowStyle}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="Status" Width="85" DisplayMemberBinding="{Binding Status}"/>
