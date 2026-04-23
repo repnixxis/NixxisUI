@@ -935,7 +935,11 @@ function Build-ExecutionPlan {
     }
 
     Add-PlanItem 'OVERWRITE' 'Deploy application folders' $installPath 'ClientSoftware, CrAppServer, MediaServer, Reporting, SoundsSamples'
-    Add-PlanItem 'OVERWRITE' 'Process SampleConfigFiles' (Join-Path $installPath 'CrAppServer') 'Copy all except NCC*, strip .sample extension'
+    if ($rbModeInstall.IsChecked) {
+        Add-PlanItem 'OVERWRITE' 'Process SampleConfigFiles' (Join-Path $installPath 'CrAppServer') 'Copy all except NCC*, strip .sample extension'
+    } else {
+        Add-PlanItem 'CHECK' 'Review config manually' (Join-Path $installPath 'CrAppServer\CrAppserver.exe.config') 'Make sure CrAppserver.exe.config is up to date. Adapt as needed'
+    }
 
     if ($rbModeInstall.IsChecked) {
         Add-PlanItem 'CREATE' 'Install Windows service' $serviceName "Path: $(Join-Path $installPath 'CrAppServer\\CrAppServer.exe')"
@@ -1242,6 +1246,7 @@ function Start-NixxisJob {
     $selectedClientVersion = if ($cbClientVersion.SelectedItem) { [string]$cbClientVersion.SelectedItem } else { '' }
     $selectedServerVersion = if ($cbServerVersion.SelectedItem) { [string]$cbServerVersion.SelectedItem } else { '' }
     $selectedBaseVersion = if ($sync.SelectedBaseVersion) { [string]$sync.SelectedBaseVersion } else { '' }
+    $operationMode = if ($rbModeInstall.IsChecked) { 'install' } else { 'update' }
     $optEnsureDotNet48 = [bool]$cbEnsureDotNet48.IsChecked
     $optInstallMoveFiles = [bool]$cbInstallMoveFiles.IsChecked
     $optCreateReportingUser = [bool]$cbCreateReportingUser.IsChecked
@@ -1269,6 +1274,7 @@ function Start-NixxisJob {
     $rs.SessionStateProxy.SetVariable('selectedClientVersion', $selectedClientVersion)
     $rs.SessionStateProxy.SetVariable('selectedServerVersion', $selectedServerVersion)
     $rs.SessionStateProxy.SetVariable('selectedBaseVersion', $selectedBaseVersion)
+    $rs.SessionStateProxy.SetVariable('operationMode', $operationMode)
     $rs.SessionStateProxy.SetVariable('optEnsureDotNet48', $optEnsureDotNet48)
     $rs.SessionStateProxy.SetVariable('optInstallMoveFiles', $optInstallMoveFiles)
     $rs.SessionStateProxy.SetVariable('optCreateReportingUser', $optCreateReportingUser)
@@ -1675,35 +1681,39 @@ $sbDeploy = {
         } else { Write-BgLog "Source not found in staging: $($f.S) - skipping." 'WARN' }
     }
 
-    $sampleSource = Join-Path $appServer 'SampleConfigFiles'
-    $sampleDestination = Join-Path $installPath 'CrAppServer'
-    if (Test-Path $sampleSource) {
-        Write-BgLog "Processing SampleConfigFiles -> $sampleDestination" 'CYAN'
-        $copied = 0
-        $skipped = 0
-        Get-ChildItem -Path $sampleSource -File -Recurse | ForEach-Object {
-            if ($_.Name -like 'NCC*') {
-                $skipped++
-                return
-            }
+    if ($operationMode -eq 'install') {
+        $sampleSource = Join-Path $appServer 'SampleConfigFiles'
+        $sampleDestination = Join-Path $installPath 'CrAppServer'
+        if (Test-Path $sampleSource) {
+            Write-BgLog "Processing SampleConfigFiles -> $sampleDestination" 'CYAN'
+            $copied = 0
+            $skipped = 0
+            Get-ChildItem -Path $sampleSource -File -Recurse | ForEach-Object {
+                if ($_.Name -like 'NCC*') {
+                    $skipped++
+                    return
+                }
 
-            $relativePath = $_.FullName.Substring($sampleSource.Length).TrimStart('\\','/')
-            $destRelative = if ($relativePath -match '\\.sample$') {
-                $relativePath -replace '\\.sample$', ''
-            } else {
-                $relativePath
+                $relativePath = $_.FullName.Substring($sampleSource.Length).TrimStart('\\','/')
+                $destRelative = if ($relativePath -match '\\.sample$') {
+                    $relativePath -replace '\\.sample$', ''
+                } else {
+                    $relativePath
+                }
+                $destFile = Join-Path $sampleDestination $destRelative
+                $destDir = Split-Path -Parent $destFile
+                if (-not (Test-Path $destDir)) {
+                    New-Item -Path $destDir -ItemType Directory -Force | Out-Null
+                }
+                Copy-Item -Path $_.FullName -Destination $destFile -Force
+                $copied++
             }
-            $destFile = Join-Path $sampleDestination $destRelative
-            $destDir = Split-Path -Parent $destFile
-            if (-not (Test-Path $destDir)) {
-                New-Item -Path $destDir -ItemType Directory -Force | Out-Null
-            }
-            Copy-Item -Path $_.FullName -Destination $destFile -Force
-            $copied++
+            Write-BgLog "SampleConfigFiles complete: $copied copied, $skipped skipped" 'OK'
+        } else {
+            Write-BgLog 'SampleConfigFiles not found in staging - skipping.' 'WARN'
         }
-        Write-BgLog "SampleConfigFiles complete: $copied copied, $skipped skipped" 'OK'
     } else {
-        Write-BgLog 'SampleConfigFiles not found in staging - skipping.' 'WARN'
+        Write-BgLog 'Make sure CrAppserver.exe.config is up to date. Adapt as needed' 'WARN'
     }
 
     Write-BgLog 'Deploy phase complete.' 'OK'
