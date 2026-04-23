@@ -1222,7 +1222,7 @@ $sbLaunchDeployReports = {
 }
 
 $sbInitialSetupFull = [scriptblock]::Create(
-    "if ($optEnsureDotNet48) {" + "`n" +
+    'if ($optEnsureDotNet48) {' + "`n" +
     $sbEnsureDotNet48.ToString() + "`n" +
     "} else { Write-BgLog 'Skipped .NET 4.8 check by option.' 'GRAY' }" + "`n" +
     $sbDownload.ToString() + "`n" +
@@ -1233,16 +1233,16 @@ $sbInitialSetupFull = [scriptblock]::Create(
     $sbDeploy.ToString() + "`n" +
     $sbInstallService.ToString() + "`n" +
     $sbCopyTools.ToString() + "`n" +
-    "if ($optInstallMoveFiles) {" + "`n" +
+    'if ($optInstallMoveFiles) {' + "`n" +
     $sbInstallMoveFiles.ToString() + "`n" +
     "} else { Write-BgLog 'Skipped MoveFiles installation by option.' 'GRAY' }" + "`n" +
-    "if ($optCreateReportingUser) {" + "`n" +
+    'if ($optCreateReportingUser) {' + "`n" +
     $sbCreateReportingUser.ToString() + "`n" +
     "} else { Write-BgLog 'Skipped Reporting user creation by option.' 'GRAY' }" + "`n" +
-    "if ($optConfigureFirewall) {" + "`n" +
+    'if ($optConfigureFirewall) {' + "`n" +
     $sbConfigFirewall.ToString() + "`n" +
     "} else { Write-BgLog 'Skipped firewall configuration by option.' 'GRAY' }" + "`n" +
-    "if ($optDeployTranscription) {" + "`n" +
+    'if ($optDeployTranscription) {' + "`n" +
     $sbDeployTranscription.ToString() + "`n" +
     "} else { Write-BgLog 'Skipped transcription helpers by option.' 'GRAY' }" + "`n" +
     "Write-BgLog '=== INITIAL SETUP COMPLETE ===' 'OK'"
