@@ -17,7 +17,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 #endregion
 
-# Force TLS 1.2 — required for GitHub/web downloads on PowerShell 5.1 / Windows Server
+# Force TLS 1.2 - required for GitHub/web downloads on PowerShell 5.1 / Windows Server
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
@@ -189,8 +189,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 <Button x:Name="btnBrowseInstall" Grid.Column="1" Content="..." Width="34" Height="28"
                                         Style="{StaticResource ActionBtn}" Margin="4,2,0,2" FontSize="13"/>
                             </Grid>
+                            <Label Content="Windows service name:"/>
+                            <TextBox x:Name="tbServiceName" Text="crappserver" FontSize="11"/>
                             <TextBlock Foreground="#666" FontSize="10" TextWrapping="Wrap" Margin="2,2,0,0"
-                                       Text="This path is used for deploy, service install, tools, MoveFiles, firewall and reporting actions."/>
+                                       Text="Install path and service name are used for status, start/stop, service install and firewall actions."/>
                         </StackPanel>
                     </GroupBox>
 
@@ -211,9 +213,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     <!-- Source Mode -->
                     <GroupBox Header="  Source Mode  ">
                         <StackPanel>
-                            <RadioButton x:Name="rbOnlineAuto"   Content="Online — Auto-Discover latest"  IsChecked="True"/>
-                            <RadioButton x:Name="rbOnlineCustom" Content="Online — Custom URLs"/>
-                            <RadioButton x:Name="rbOffline"      Content="Offline — Use local ZIP files"/>
+                            <RadioButton x:Name="rbOnlineAuto"   Content="Online - Auto-Discover latest"  IsChecked="True"/>
+                            <RadioButton x:Name="rbOnlineCustom" Content="Online - Custom URLs"/>
+                            <RadioButton x:Name="rbOffline"      Content="Offline - Use local ZIP files"/>
 
                             <StackPanel x:Name="pnlCustomUrls" Visibility="Collapsed" Margin="8,6,0,0">
                                 <Label Content="ClientProvisioning.zip URL (blank = auto):"/>
@@ -391,6 +393,7 @@ $tbOfflinePath   = ctrl 'tbOfflinePath'
 $tbWorkDir       = ctrl 'tbWorkDir'
 $tbRunDir        = ctrl 'tbRunDir'
 $tbInstallPath   = ctrl 'tbInstallPath'
+$tbServiceName   = ctrl 'tbServiceName'
 $btnBrowseWork   = ctrl 'btnBrowseWork'
 $btnBrowseInstall= ctrl 'btnBrowseInstall'
 $btnBrowseOffline= ctrl 'btnBrowseOffline'
@@ -443,11 +446,12 @@ $sync = [hashtable]::Synchronized(@{
     Busy    = $false
     WorkDir = 'C:\NixxisMaintenance\Update'
     InstallPath = 'C:\Nixxis'
+    ServiceName = 'crappserver'
     RunDir  = ''
     LogLines= [System.Collections.Generic.List[string]]::new()
 })
 
-# Log file — in Logs folder alongside WorkDir's parent
+# Log file - in Logs folder alongside WorkDir's parent
 $logDate = Get-Date -Format 'yyyyMMdd_HHmmss'
 $logDir  = 'C:\NixxisMaintenance\Logs'
 $logFile = Join-Path $logDir "NixxisMaintenance_$logDate.log"
@@ -473,7 +477,7 @@ function Get-Brush($hex) {
 
 #region --- UI Helpers (call ONLY from UI thread) ---
 
-# Add one log line directly to RTB — safe on UI thread, no Dispatcher needed
+# Add one log line directly to RTB - safe on UI thread, no Dispatcher needed
 function Add-LogEntry([string]$Message, [string]$Level = 'INFO') {
     $ts   = Get-Date -Format 'HH:mm:ss'
     $line = "[$ts] $Message"
@@ -483,7 +487,7 @@ function Add-LogEntry([string]$Message, [string]$Level = 'INFO') {
     Add-Content -Path $logFile -Value $line -ErrorAction SilentlyContinue
     $sync.LogLines.Add($line)
 
-    # RTB — already on UI thread
+    # RTB - already on UI thread
     $para          = [System.Windows.Documents.Paragraph]::new()
     $para.Margin   = [System.Windows.Thickness]::new(0)
     $run           = [System.Windows.Documents.Run]::new($line)
@@ -505,15 +509,21 @@ function Set-Busy([bool]$Busy) {
 }
 
 function Update-ServiceStatus {
-    $svc = Get-Service -Name 'crappserver' -ErrorAction SilentlyContinue
+    $serviceName = $tbServiceName.Text.Trim()
+    if ([string]::IsNullOrWhiteSpace($serviceName)) {
+        $serviceName = 'crappserver'
+        $tbServiceName.Text = $serviceName
+    }
+
+    $svc = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
     if (-not $svc) {
-        $tbServiceStatus.Text = 'Service: Not Found'
+        $tbServiceStatus.Text = "Service '$serviceName': Not Found"
         $ellServiceDot.Fill   = Get-Brush '#888888'
     } elseif ($svc.Status -eq 'Running') {
-        $tbServiceStatus.Text = 'Service: Running'
+        $tbServiceStatus.Text = "Service '$serviceName': Running"
         $ellServiceDot.Fill   = Get-Brush '#4ec9b0'
     } else {
-        $tbServiceStatus.Text = "Service: $($svc.Status)"
+        $tbServiceStatus.Text = "Service '$serviceName': $($svc.Status)"
         $ellServiceDot.Fill   = Get-Brush '#dcdcaa'
     }
 }
@@ -567,6 +577,8 @@ function Start-NixxisJob {
     $ncsUrl    = $tbNCSUrl.Text.Trim()
     $offPath   = $tbOfflinePath.Text.Trim()
     $installPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+    $serviceName = $tbServiceName.Text.Trim()
+    if ([string]::IsNullOrWhiteSpace($serviceName)) { $serviceName = 'crappserver' }
     $optEnsureDotNet48 = [bool]$cbEnsureDotNet48.IsChecked
     $optInstallMoveFiles = [bool]$cbInstallMoveFiles.IsChecked
     $optCreateReportingUser = [bool]$cbCreateReportingUser.IsChecked
@@ -574,6 +586,7 @@ function Start-NixxisJob {
     $optDeployTranscription = [bool]$cbDeployTranscription.IsChecked
     $runDir    = $sync.RunDir
     $sync.InstallPath = $installPath
+    $sync.ServiceName = $serviceName
 
     $rs = [runspacefactory]::CreateRunspace()
     $rs.ApartmentState = 'STA'
@@ -587,6 +600,7 @@ function Start-NixxisJob {
     $rs.SessionStateProxy.SetVariable('ncsUrl',  $ncsUrl)
     $rs.SessionStateProxy.SetVariable('offlinePath', $offPath)
     $rs.SessionStateProxy.SetVariable('installPath', $installPath)
+    $rs.SessionStateProxy.SetVariable('serviceName', $serviceName)
     $rs.SessionStateProxy.SetVariable('optEnsureDotNet48', $optEnsureDotNet48)
     $rs.SessionStateProxy.SetVariable('optInstallMoveFiles', $optInstallMoveFiles)
     $rs.SessionStateProxy.SetVariable('optCreateReportingUser', $optCreateReportingUser)
@@ -611,7 +625,7 @@ function Start-NixxisJob {
     $startTime = [datetime]::Now
     $handle    = $ps.BeginInvoke()
 
-    # DispatcherTimer — runs on UI thread, safe to touch controls directly
+    # DispatcherTimer - runs on UI thread, safe to touch controls directly
     $timer          = [System.Windows.Threading.DispatcherTimer]::new()
     $timer.Interval = [timespan]::FromMilliseconds(200)
 
@@ -621,7 +635,7 @@ function Start-NixxisJob {
     $timer.Add_Tick({
         $j = $script:_job
 
-        # Drain log queue — already on UI thread, call Add-LogEntry directly
+        # Drain log queue - already on UI thread, call Add-LogEntry directly
         $entry = $null
         while ($sync.Queue.TryDequeue([ref]$entry)) {
             Add-LogEntry $entry.Message $entry.Level
@@ -697,7 +711,7 @@ $sbDownload = {
 
     if ($mode -eq 'offline') {
         $src = if ($offlinePath) { $offlinePath } else { $runDir }
-        Write-BgLog "Offline mode — source: $src" 'MAGENTA'
+        Write-BgLog "Offline mode - source: $src" 'MAGENTA'
         foreach ($zip in @('ClientProvisioning.zip','ClientSoftware.zip','NCS.zip')) {
             $f = Join-Path $src $zip
             if (-not (Test-Path $f)) { throw "Missing offline file: $f" }
@@ -859,20 +873,20 @@ $sbStopService = {
         } else { Write-BgLog "nixxisclientdesktop terminated." 'OK' }
     } else { Write-BgLog "nixxisclientdesktop not running." 'GRAY' }
 
-    Stop-Service -Name 'crappserver' -Force -ErrorAction SilentlyContinue
+    Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
     $max = 60; $i = 0
     do {
-        $svc  = Get-Service 'crappserver' -ErrorAction SilentlyContinue
+        $svc  = Get-Service $serviceName -ErrorAction SilentlyContinue
         $proc = Get-Process 'crappserver' -ErrorAction SilentlyContinue
         if ((-not $svc -or $svc.Status -eq 'Stopped') -and -not $proc) {
             Start-Sleep 3
             if (-not (Get-Process 'crappserver' -ErrorAction SilentlyContinue)) {
-                Write-BgLog "Crappserver fully stopped." 'OK'; break
+                Write-BgLog "$serviceName fully stopped." 'OK'; break
             }
         }
         $i++
         Write-BgLog "Waiting for service to stop... attempt $i / $max" 'WARN'
-        Stop-Service -Name 'crappserver' -Force -ErrorAction SilentlyContinue
+        Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
         Start-Sleep 2
     } until ($i -ge $max)
     if ($i -ge $max) { throw "Service did not stop within 120 seconds." }
@@ -900,7 +914,7 @@ $sbBackup = {
             Write-BgLog "Backing up $name..." 'CYAN'
             Copy-Item $src $dest -Recurse -Force
             Write-BgLog "  Done" 'OK'
-        } else { Write-BgLog "$src not found — skipping." 'WARN' }
+        } else { Write-BgLog "$src not found - skipping." 'WARN' }
     }
     Write-BgLog 'Backup phase complete.' 'OK'
 }
@@ -909,7 +923,7 @@ $sbCleanup = {
     Write-BgLog '=== CLEANUP PHASE ===' 'HEADER'
     $base = Join-Path $installPath 'CrAppServer'
     if (-not (Test-Path $base)) {
-        Write-BgLog "CrAppServer not found at $base — nothing to clean." 'WARN'
+        Write-BgLog "CrAppServer not found at $base - nothing to clean." 'WARN'
     } else {
         $files = @(
             "$base\AdminLink.dll","$base\agsXMPP.dll","$base\CRAppServerInterfaces.dll",
@@ -947,7 +961,7 @@ $sbCleanup = {
     if (Test-Path $cs) {
         Remove-Item $cs -Recurse -Force -ErrorAction SilentlyContinue
         Write-BgLog "Removed ClientSoftware folder" 'OK'
-    } else { Write-BgLog "ClientSoftware not found — skipping." 'WARN' }
+    } else { Write-BgLog "ClientSoftware not found - skipping." 'WARN' }
     Write-BgLog 'Cleanup phase complete.' 'OK'
 }
 
@@ -974,7 +988,7 @@ $sbDeploy = {
             if (-not (Test-Path $f.D)) { New-Item $f.D -ItemType Directory -Force | Out-Null }
             Copy-Item "$src\*" $f.D -Recurse -Force
             Write-BgLog "  Done" 'OK'
-        } else { Write-BgLog "Source not found in staging: $($f.S) — skipping." 'WARN' }
+        } else { Write-BgLog "Source not found in staging: $($f.S) - skipping." 'WARN' }
     }
 
     $sampleSource = Join-Path $appServer 'SampleConfigFiles'
@@ -1013,9 +1027,9 @@ $sbDeploy = {
 
 $sbStartService = {
     Write-BgLog '=== START SERVICE ===' 'HEADER'
-    $svc = Get-Service 'crappserver' -ErrorAction SilentlyContinue
-    if (-not $svc) { throw "Service 'crappserver' not found on this machine." }
-    Start-Service 'crappserver'
+    $svc = Get-Service $serviceName -ErrorAction SilentlyContinue
+    if (-not $svc) { throw "Service '$serviceName' not found on this machine." }
+    Start-Service $serviceName
     Start-Sleep 3
     $svc.Refresh()
     Write-BgLog "Service status: $($svc.Status)" $(if ($svc.Status -eq 'Running') { 'OK' } else { 'WARN' })
@@ -1081,15 +1095,28 @@ $sbInstallService = {
         throw "CrAppServer.exe not found at $crAppServerExe"
     }
 
-    Push-Location $crAppServerDir
-    try {
-        $svcOutput = & $crAppServerExe -install 2>&1
-        foreach ($line in $svcOutput) {
-            Write-BgLog "  [CrAppServer] $line" 'GRAY'
-        }
+    $existingService = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+    if ($existingService) {
+        Write-BgLog "Service '$serviceName' already exists - skipping install." 'WARN'
+        return
     }
-    finally {
-        Pop-Location
+
+    if ($serviceName -ieq 'crappserver') {
+        Push-Location $crAppServerDir
+        try {
+            $svcOutput = & $crAppServerExe -install 2>&1
+            foreach ($line in $svcOutput) {
+                Write-BgLog "  [CrAppServer] $line" 'GRAY'
+            }
+        }
+        finally {
+            Pop-Location
+        }
+        Write-BgLog "Installed service using CrAppServer installer: $serviceName" 'OK'
+    } else {
+        $binPath = "`"$crAppServerExe`""
+        New-Service -Name $serviceName -BinaryPathName $binPath -DisplayName $serviceName -StartupType Automatic | Out-Null
+        Write-BgLog "Installed custom service '$serviceName' using New-Service." 'OK'
     }
     Write-BgLog 'Service installation phase complete.' 'OK'
 }
@@ -1165,7 +1192,7 @@ $sbConfigFirewall = {
     }
 
     foreach ($proto in @('TCP', 'UDP')) {
-        $ruleName = "Nixxis CrAppServer $proto"
+        $ruleName = "Nixxis $serviceName $proto"
         Remove-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
         New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Program $crAppServerExeFw -Protocol $proto -Action Allow -Profile Any | Out-Null
         Write-BgLog "Firewall rule created: $ruleName" 'OK'
@@ -1221,32 +1248,36 @@ $sbLaunchDeployReports = {
     Write-BgLog 'Manual action: copy contents of Reporting\ToCopyReportingServer into SQL Reporting Services ReportServer\bin.' 'WARN'
 }
 
-$sbInitialSetupFull = [scriptblock]::Create(
-    'if ($optEnsureDotNet48) {' + "`n" +
-    $sbEnsureDotNet48.ToString() + "`n" +
-    '} else { Write-BgLog ''Skipped .NET 4.8 check by option.'' ''GRAY'' }' + "`n" +
-    $sbDownload.ToString() + "`n" +
-    $sbPrepare.ToString() + "`n" +
-    $sbStopService.ToString() + "`n" +
-    $sbBackup.ToString() + "`n" +
-    $sbCleanup.ToString() + "`n" +
-    $sbDeploy.ToString() + "`n" +
-    $sbInstallService.ToString() + "`n" +
-    $sbCopyTools.ToString() + "`n" +
-    'if ($optInstallMoveFiles) {' + "`n" +
-    $sbInstallMoveFiles.ToString() + "`n" +
-    '} else { Write-BgLog ''Skipped MoveFiles installation by option.'' ''GRAY'' }' + "`n" +
-    'if ($optCreateReportingUser) {' + "`n" +
-    $sbCreateReportingUser.ToString() + "`n" +
-    '} else { Write-BgLog ''Skipped Reporting user creation by option.'' ''GRAY'' }' + "`n" +
-    'if ($optConfigureFirewall) {' + "`n" +
-    $sbConfigFirewall.ToString() + "`n" +
-    '} else { Write-BgLog ''Skipped firewall configuration by option.'' ''GRAY'' }' + "`n" +
-    'if ($optDeployTranscription) {' + "`n" +
-    $sbDeployTranscription.ToString() + "`n" +
-    '} else { Write-BgLog ''Skipped transcription helpers by option.'' ''GRAY'' }' + "`n" +
-    'Write-BgLog ''=== INITIAL SETUP COMPLETE ==='' ''OK'''
-)
+function New-InitialSetupScriptBlock {
+    $initialSetupText = @(
+        'if ($optEnsureDotNet48) {'
+        $sbEnsureDotNet48.ToString()
+        '} else { Write-BgLog ''Skipped .NET 4.8 check by option.'' ''GRAY'' }'
+        $sbDownload.ToString()
+        $sbPrepare.ToString()
+        $sbStopService.ToString()
+        $sbBackup.ToString()
+        $sbCleanup.ToString()
+        $sbDeploy.ToString()
+        $sbInstallService.ToString()
+        $sbCopyTools.ToString()
+        'if ($optInstallMoveFiles) {'
+        $sbInstallMoveFiles.ToString()
+        '} else { Write-BgLog ''Skipped MoveFiles installation by option.'' ''GRAY'' }'
+        'if ($optCreateReportingUser) {'
+        $sbCreateReportingUser.ToString()
+        '} else { Write-BgLog ''Skipped Reporting user creation by option.'' ''GRAY'' }'
+        'if ($optConfigureFirewall) {'
+        $sbConfigFirewall.ToString()
+        '} else { Write-BgLog ''Skipped firewall configuration by option.'' ''GRAY'' }'
+        'if ($optDeployTranscription) {'
+        $sbDeployTranscription.ToString()
+        '} else { Write-BgLog ''Skipped transcription helpers by option.'' ''GRAY'' }'
+        'Write-BgLog ''=== INITIAL SETUP COMPLETE ==='' ''OK'''
+    ) -join "`n"
+
+    return [scriptblock]::Create($initialSetupText)
+}
 
 # Full update chains all phases in sequence
 $sbFullUpdate = [scriptblock]::Create(
@@ -1292,7 +1323,7 @@ $btnBrowseInstall.Add_Click({
     }
 })
 
-# WorkDir text change — keep sync live
+# WorkDir text change - keep sync live
 $tbWorkDir.Add_TextChanged({
     $sync.WorkDir = $tbWorkDir.Text.Trim()
     Update-RunDirLabel
@@ -1300,6 +1331,14 @@ $tbWorkDir.Add_TextChanged({
 
 $tbInstallPath.Add_TextChanged({
     $sync.InstallPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+})
+
+$tbServiceName.Add_TextChanged({
+    $name = $tbServiceName.Text.Trim()
+    if (-not [string]::IsNullOrWhiteSpace($name)) {
+        $sync.ServiceName = $name
+    }
+    Update-ServiceStatus
 })
 
 # Offline folder picker
@@ -1329,7 +1368,7 @@ $btnSaveLog.Add_Click({
 $btnOpenWork.Add_Click({
     $p = $tbWorkDir.Text.Trim()
     if (Test-Path $p) { Start-Process explorer $p }
-    else { Add-LogEntry "Working directory not found: $p — it will be created on first run." 'WARN' }
+    else { Add-LogEntry "Working directory not found: $p - it will be created on first run." 'WARN' }
 })
 $btnOpenLogs.Add_Click({
     if (Test-Path $logDir) { Start-Process explorer $logDir }
@@ -1347,7 +1386,12 @@ $btnOpenReportBin.Add_Click({
 })
 
 # Operation buttons
-$btnRunInitialSetup.Add_Click({    Add-LogEntry '==== INITIAL SETUP ====' 'HEADER';   Set-Status 'Running initial setup...' 0; Start-NixxisJob $sbInitialSetupFull 'Initial Setup' })
+$btnRunInitialSetup.Add_Click({
+    Add-LogEntry '==== INITIAL SETUP ====' 'HEADER'
+    Set-Status 'Running initial setup...' 0
+    $initialSetupScript = New-InitialSetupScriptBlock
+    Start-NixxisJob $initialSetupScript 'Initial Setup'
+})
 $btnEnsureDotNet48.Add_Click({     Add-LogEntry '==== ENSURE .NET 4.8 ====' 'HEADER'; Set-Status 'Checking .NET...' 0; Start-NixxisJob $sbEnsureDotNet48 'Ensure .NET 4.8' })
 $btnRunFull.Add_Click({     Add-LogEntry '==== FULL UPDATE ====' 'HEADER';   Set-Status 'Running full update...' 0;  Start-NixxisJob $sbFullUpdate    'Full Update'   })
 $btnDownload.Add_Click({    Add-LogEntry '==== DOWNLOAD ====' 'HEADER';      Set-Status 'Downloading ZIPs...' 0;    Start-NixxisJob $sbDownload      'Download'      })
@@ -1374,6 +1418,7 @@ Add-LogEntry "User: $env:USERNAME  |  Host: $env:COMPUTERNAME" 'GRAY'
 Add-LogEntry "Log file: $logFile" 'GRAY'
 Add-LogEntry "Default working directory: $($sync.WorkDir)" 'CYAN'
 Add-LogEntry "Install path: $($sync.InstallPath)" 'CYAN'
+Add-LogEntry "Service name: $($sync.ServiceName)" 'CYAN'
 Add-LogEntry "A dated subfolder (YYYYMMDD) will be created in that directory on each run." 'GRAY'
 Add-LogEntry '' 'INFO'
 Update-ServiceStatus
