@@ -22,7 +22,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-$script:AppVersion = '1.1'
+$script:AppVersion = '1.2'
 
 #region --- XAML ---
 [xml]$xaml = @'
@@ -332,7 +332,7 @@ $script:AppVersion = '1.1'
             <!-- SPLITTER -->
             <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="#333"/>
 
-            <!-- RIGHT PANEL - Log -->
+            <!-- RIGHT PANEL - Operations Console -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -342,26 +342,132 @@ $script:AppVersion = '1.1'
 
                 <Border Grid.Row="0" Background="#111a22" CornerRadius="5,5,0,0" Padding="10,6" Margin="0,0,0,1">
                     <Grid>
-                        <TextBlock Text="ACTIVITY LOG" Foreground="#8bc3d8" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Text="OPERATIONS CONSOLE" Foreground="#8bc3d8" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button x:Name="btnClearLog" Content="Clear"    Style="{StaticResource ActionBtn}" Height="24" Width="55" FontSize="11" Margin="2,0"/>
                             <Button x:Name="btnSaveLog"  Content="Save Log" Style="{StaticResource ActionBtn}" Height="24" Width="68" FontSize="11" Margin="2,0"/>
+                            <Button x:Name="btnExportSignedReport" Content="Export Signed Report" Style="{StaticResource ActionBtn}" Height="24" Width="140" FontSize="11" Margin="2,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <RichTextBox x:Name="rtbLog" Grid.Row="1"
-                             Background="#0b1117" Foreground="#c8d3dd"
-                             BorderBrush="#2c3a46" BorderThickness="1"
-                             IsReadOnly="True"
-                             FontFamily="Consolas,Courier New" FontSize="12"
-                             VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto"
-                             Padding="8">
-                    <RichTextBox.Document>
-                        <FlowDocument PageWidth="9999"/>
-                    </RichTextBox.Document>
-                </RichTextBox>
+                <TabControl x:Name="tcOps" Grid.Row="1" Background="#0b1117" BorderBrush="#2c3a46" BorderThickness="1">
+                    <TabItem Header="Log">
+                        <RichTextBox x:Name="rtbLog"
+                                     Background="#0b1117" Foreground="#c8d3dd"
+                                     BorderThickness="0"
+                                     IsReadOnly="True"
+                                     FontFamily="Consolas,Courier New" FontSize="12"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Auto"
+                                     Padding="8">
+                            <RichTextBox.Document>
+                                <FlowDocument PageWidth="9999"/>
+                            </RichTextBox.Document>
+                        </RichTextBox>
+                    </TabItem>
+
+                    <TabItem Header="Plan">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Button x:Name="btnGeneratePlan" Content="Generate Plan" Style="{StaticResource ActionBtn}" Width="120"/>
+                                <TextBlock x:Name="tbPlanSummary" Foreground="#b8c6d3" Margin="10,6,0,0" Text="Plan not generated."/>
+                            </StackPanel>
+                            <CheckBox x:Name="chkPlanApproved" Grid.Row="1" Margin="2,6,0,4" Content="I reviewed and approve this plan"/>
+                            <TextBlock Grid.Row="2" Foreground="#7f93a7" FontSize="10" Text="Badges: Create / Overwrite / Delete / Skip"/>
+                            <ListView x:Name="lvPlan" Grid.Row="3" Margin="0,6,0,0" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Badge" Width="85" DisplayMemberBinding="{Binding Badge}"/>
+                                        <GridViewColumn Header="Action" Width="210" DisplayMemberBinding="{Binding Action}"/>
+                                        <GridViewColumn Header="Path" Width="280" DisplayMemberBinding="{Binding Path}"/>
+                                        <GridViewColumn Header="Details" Width="260" DisplayMemberBinding="{Binding Details}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Preflight">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Button x:Name="btnRunPreflight" Content="Run Preflight" Style="{StaticResource ActionBtn}" Width="120"/>
+                                <TextBlock x:Name="tbPreflightSummary" Foreground="#b8c6d3" Margin="10,6,0,0" Text="Preflight not run."/>
+                            </StackPanel>
+                            <ListView x:Name="lvPreflight" Grid.Row="1" Margin="0,8,0,0" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Status" Width="85" DisplayMemberBinding="{Binding Status}"/>
+                                        <GridViewColumn Header="Risk" Width="220" DisplayMemberBinding="{Binding Risk}"/>
+                                        <GridViewColumn Header="Details" Width="520" DisplayMemberBinding="{Binding Details}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Timeline">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="tbTimelineCurrent" Grid.Column="0" Foreground="#b8c6d3" Text="Current: -"/>
+                                <TextBlock x:Name="tbTimelineNext" Grid.Column="1" Foreground="#b8c6d3" Text="Next: -"/>
+                                <TextBlock x:Name="tbTimelineEta" Grid.Column="2" Foreground="#b8c6d3" Text="ETA: -" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <ListView x:Name="lvTimeline" Grid.Row="1" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Step" Width="250" DisplayMemberBinding="{Binding Step}"/>
+                                        <GridViewColumn Header="State" Width="120" DisplayMemberBinding="{Binding State}"/>
+                                        <GridViewColumn Header="Started" Width="120" DisplayMemberBinding="{Binding Started}"/>
+                                        <GridViewColumn Header="Finished" Width="120" DisplayMemberBinding="{Binding Finished}"/>
+                                        <GridViewColumn Header="Notes" Width="240" DisplayMemberBinding="{Binding Notes}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Validation">
+                        <Grid Margin="8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                <Button x:Name="btnRunValidation" Content="Run Post-Install Validation" Style="{StaticResource ActionBtn}" Width="190"/>
+                                <TextBlock x:Name="tbValidationSummary" Foreground="#b8c6d3" Margin="10,6,0,0" Text="Validation not run."/>
+                            </StackPanel>
+                            <ListView x:Name="lvValidation" Grid.Row="1" Margin="0,8,0,0" Background="#0f161f" BorderBrush="#2c3a46" BorderThickness="1">
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Header="Status" Width="85" DisplayMemberBinding="{Binding Status}"/>
+                                        <GridViewColumn Header="Check" Width="220" DisplayMemberBinding="{Binding Check}"/>
+                                        <GridViewColumn Header="Details" Width="520" DisplayMemberBinding="{Binding Details}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
 
                 <StackPanel Grid.Row="2" Background="#111a22" Margin="0,1,0,0">
                     <ProgressBar x:Name="progressBar" Height="5" Value="0" Maximum="100"
@@ -448,6 +554,22 @@ $btnOpenNixxis   = ctrl 'btnOpenNixxis'
 $btnOpenReportBin= ctrl 'btnOpenReportBin'
 $btnClearLog     = ctrl 'btnClearLog'
 $btnSaveLog      = ctrl 'btnSaveLog'
+$btnExportSignedReport = ctrl 'btnExportSignedReport'
+$tcOps           = ctrl 'tcOps'
+$btnGeneratePlan = ctrl 'btnGeneratePlan'
+$tbPlanSummary   = ctrl 'tbPlanSummary'
+$chkPlanApproved = ctrl 'chkPlanApproved'
+$lvPlan          = ctrl 'lvPlan'
+$btnRunPreflight = ctrl 'btnRunPreflight'
+$tbPreflightSummary = ctrl 'tbPreflightSummary'
+$lvPreflight     = ctrl 'lvPreflight'
+$tbTimelineCurrent = ctrl 'tbTimelineCurrent'
+$tbTimelineNext  = ctrl 'tbTimelineNext'
+$tbTimelineEta   = ctrl 'tbTimelineEta'
+$lvTimeline      = ctrl 'lvTimeline'
+$btnRunValidation = ctrl 'btnRunValidation'
+$tbValidationSummary = ctrl 'tbValidationSummary'
+$lvValidation    = ctrl 'lvValidation'
 $rtbLog          = ctrl 'rtbLog'
 $progressBar     = ctrl 'progressBar'
 $tbStatus        = ctrl 'tbStatus'
@@ -460,6 +582,19 @@ $allOpButtons = @(
     $btnRunFull,$btnRunInitialSetup,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService,
     $btnEnsureDotNet48,$btnInstallService,$btnCopyTools,$btnInstallMoveFiles,$btnCreateReportingUser,$btnConfigFirewall,$btnDeployTranscription,$btnLaunchDeployReports
 )
+
+$script:PlanItems = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
+$script:PreflightItems = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
+$script:TimelineItems = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
+$script:ValidationItems = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
+$lvPlan.ItemsSource = $script:PlanItems
+$lvPreflight.ItemsSource = $script:PreflightItems
+$lvTimeline.ItemsSource = $script:TimelineItems
+$lvValidation.ItemsSource = $script:ValidationItems
+
+$script:TimelineStepOrder = @()
+$script:TimelineCurrentIndex = -1
+$script:TimelineStartedAt = $null
 #endregion
 
 #region --- Shared State ---
@@ -520,6 +655,8 @@ function Add-LogEntry([string]$Message, [string]$Level = 'INFO') {
     $para.Inlines.Add($run)
     $rtbLog.Document.Blocks.Add($para)
     $rtbLog.ScrollToEnd()
+
+    Update-TimelineFromLog $Message
 }
 
 function Set-Status([string]$Text, [int]$Pct = -1) {
@@ -619,6 +756,322 @@ function Update-SourceModeUI {
         $pnlOfflinePath.Visibility = 'Collapsed'
     }
 }
+
+function Add-PlanItem {
+    param([string]$Badge, [string]$Action, [string]$Path, [string]$Details)
+    $script:PlanItems.Add([pscustomobject]@{
+        Badge = $Badge
+        Action = $Action
+        Path = $Path
+        Details = $Details
+    })
+}
+
+function Build-ExecutionPlan {
+    $script:PlanItems.Clear()
+
+    $modeText = if ($rbModeInstall.IsChecked) { 'Fresh Install' } else { 'Update Existing' }
+    $sourceMode = if ($rbOffline.IsChecked) { 'Offline' } elseif ($rbOnlineCustom.IsChecked) { 'Online Custom URLs' } elseif ($rbOnlineSelect.IsChecked) { 'Online Selected Versions' } else { 'Online Auto' }
+    $workDir = $tbWorkDir.Text.Trim()
+    $runDir = Join-Path $workDir (Get-Date -Format 'yyyyMMdd')
+    $installPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+    $serviceName = $tbServiceName.Text.Trim()
+    if ([string]::IsNullOrWhiteSpace($serviceName)) { $serviceName = 'crappserver' }
+
+    Add-PlanItem 'CREATE' 'Ensure run directory' $runDir "Mode: $modeText | Source: $sourceMode"
+
+    if ($rbOffline.IsChecked) {
+        Add-PlanItem 'SKIP' 'Download from internet' $runDir 'Offline mode selected.'
+        Add-PlanItem 'OVERWRITE' 'Copy ZIP files' $tbOfflinePath.Text.Trim() 'ClientProvisioning.zip, ClientSoftware.zip, NCS.zip'
+    } elseif ($rbOnlineSelect.IsChecked) {
+        $clientV = if ($cbClientVersion.SelectedItem) { [string]$cbClientVersion.SelectedItem } else { '(not selected)' }
+        $serverV = if ($cbServerVersion.SelectedItem) { [string]$cbServerVersion.SelectedItem } else { '(not selected)' }
+        Add-PlanItem 'OVERWRITE' 'Download selected client ZIPs' $runDir "Client version: $clientV"
+        Add-PlanItem 'OVERWRITE' 'Download selected server ZIP' $runDir "Server version: $serverV"
+    } else {
+        Add-PlanItem 'OVERWRITE' 'Download ZIP files' $runDir 'Auto/custom URL resolution for ClientProvisioning, ClientSoftware, NCS'
+    }
+
+    Add-PlanItem 'OVERWRITE' 'Extract staging files' (Join-Path $runDir 'NixxisApplicationServer') 'NCS, ClientSoftware, provisioning payloads'
+
+    if ($rbModeUpdate.IsChecked) {
+        Add-PlanItem 'OVERWRITE' 'Stop service and backup existing' $installPath "Service: $serviceName"
+        Add-PlanItem 'DELETE' 'Cleanup old files' (Join-Path $installPath 'CrAppServer') 'Deletes obsolete DLL/PDB/provisioning artifacts'
+    } else {
+        Add-PlanItem 'CREATE' 'Create install root' $installPath 'Fresh install path initialization'
+    }
+
+    Add-PlanItem 'OVERWRITE' 'Deploy application folders' $installPath 'ClientSoftware, CrAppServer, MediaServer, Reporting, SoundsSamples'
+    Add-PlanItem 'OVERWRITE' 'Process SampleConfigFiles' (Join-Path $installPath 'CrAppServer') 'Copy all except NCC*, strip .sample extension'
+
+    if ($rbModeInstall.IsChecked) {
+        Add-PlanItem 'CREATE' 'Install Windows service' $serviceName "Path: $(Join-Path $installPath 'CrAppServer\\CrAppServer.exe')"
+        if ([bool]$cbConfigureFirewall.IsChecked) {
+            Add-PlanItem 'CREATE' 'Create firewall rules' 'Inbound TCP/UDP' "Rule base: Nixxis $serviceName"
+        } else {
+            Add-PlanItem 'SKIP' 'Configure firewall rules' 'Inbound TCP/UDP' 'Option disabled'
+        }
+        if ([bool]$cbInstallMoveFiles.IsChecked) {
+            Add-PlanItem 'CREATE' 'Install MoveFiles service' (Join-Path $installPath 'Tools\\MoveFiles\\MoveFiles.exe') 'Will create/rename MoveFiles.xml'
+        } else {
+            Add-PlanItem 'SKIP' 'Install MoveFiles service' (Join-Path $installPath 'Tools\\MoveFiles') 'Option disabled'
+        }
+    }
+
+    $tbPlanSummary.Text = "Plan generated: $($script:PlanItems.Count) actions | Service: $serviceName"
+    $chkPlanApproved.IsChecked = $false
+    $tcOps.SelectedIndex = 1
+}
+
+function Ensure-PlanApproved {
+    if ($script:PlanItems.Count -eq 0) {
+        Add-LogEntry 'Execution blocked: generate plan first.' 'WARN'
+        $tcOps.SelectedIndex = 1
+        return $false
+    }
+    if (-not [bool]$chkPlanApproved.IsChecked) {
+        Add-LogEntry 'Execution blocked: approval gate not checked (I reviewed and approve this plan).' 'WARN'
+        $tcOps.SelectedIndex = 1
+        return $false
+    }
+    return $true
+}
+
+function Add-RiskItem {
+    param([string]$Status, [string]$Risk, [string]$Details)
+    $script:PreflightItems.Add([pscustomobject]@{
+        Status = $Status
+        Risk = $Risk
+        Details = $Details
+    })
+}
+
+function Run-PreflightChecks {
+    $script:PreflightItems.Clear()
+
+    $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    Add-RiskItem ($(if ($admin) { 'GREEN' } else { 'RED' })) 'Administrator privileges' ($(if ($admin) { 'OK' } else { 'Run PowerShell as Administrator.' }))
+
+    $installPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+    Add-RiskItem ($(if (Test-Path $installPath) { 'GREEN' } else { 'YELLOW' })) 'Install path exists' ($(if (Test-Path $installPath) { $installPath } else { "$installPath will be created." }))
+
+    $driveRoot = [System.IO.Path]::GetPathRoot($installPath)
+    try {
+        $drive = Get-PSDrive -Name ($driveRoot.TrimEnd(':\\')) -ErrorAction Stop
+        $freeGb = [math]::Round($drive.Free / 1GB, 2)
+        $status = if ($freeGb -lt 5) { 'RED' } elseif ($freeGb -lt 10) { 'YELLOW' } else { 'GREEN' }
+        Add-RiskItem $status 'Free disk space' "$freeGb GB available on $driveRoot"
+    } catch {
+        Add-RiskItem 'YELLOW' 'Disk space check' "Could not evaluate free space on $driveRoot"
+    }
+
+    $dotNetRelease = 0
+    $regPath = 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full'
+    if (Test-Path $regPath) {
+        $dotNetRelease = [int]((Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue).Release)
+    }
+    Add-RiskItem ($(if ($dotNetRelease -ge 528040) { 'GREEN' } else { 'YELLOW' })) '.NET Framework 4.8' "Release key: $dotNetRelease"
+
+    if ($rbOffline.IsChecked) {
+        $off = $tbOfflinePath.Text.Trim()
+        $allPresent = $true
+        foreach ($z in @('ClientProvisioning.zip','ClientSoftware.zip','NCS.zip')) {
+            if (-not (Test-Path (Join-Path $off $z))) { $allPresent = $false }
+        }
+        Add-RiskItem ($(if ($allPresent) { 'GREEN' } else { 'RED' })) 'Offline ZIP availability' ($(if ($allPresent) { 'All required ZIP files found.' } else { 'Missing one or more required ZIP files.' }))
+    } else {
+        try {
+            Invoke-WebRequest -Uri 'http://update.nixxis.net' -UseBasicParsing -TimeoutSec 10 | Out-Null
+            Add-RiskItem 'GREEN' 'Online source reachability' 'http://update.nixxis.net reachable.'
+        } catch {
+            Add-RiskItem 'RED' 'Online source reachability' 'Cannot reach http://update.nixxis.net'
+        }
+    }
+
+    if ($rbOnlineSelect.IsChecked) {
+        $selectedOk = $cbClientVersion.SelectedItem -and $cbServerVersion.SelectedItem
+        Add-RiskItem ($(if ($selectedOk) { 'GREEN' } else { 'YELLOW' })) 'Selected online versions' ($(if ($selectedOk) { "Client=$($cbClientVersion.SelectedItem), Server=$($cbServerVersion.SelectedItem)" } else { 'Run Discover and select both versions.' }))
+    }
+
+    $reds = ($script:PreflightItems | Where-Object Status -eq 'RED').Count
+    $yellows = ($script:PreflightItems | Where-Object Status -eq 'YELLOW').Count
+    $greens = ($script:PreflightItems | Where-Object Status -eq 'GREEN').Count
+    $tbPreflightSummary.Text = "GREEN=$greens  YELLOW=$yellows  RED=$reds"
+    $tcOps.SelectedIndex = 2
+}
+
+function Initialize-Timeline {
+    param([string]$JobName)
+
+    $script:TimelineItems.Clear()
+    $script:TimelineCurrentIndex = -1
+    $script:TimelineStartedAt = Get-Date
+
+    if ($JobName -eq 'Initial Setup') {
+        $script:TimelineStepOrder = @('DOWNLOAD PHASE','PREPARE / EXTRACT PHASE','STOP SERVICE PHASE','BACKUP PHASE','CLEANUP PHASE','DEPLOY PHASE','SERVICE INSTALLATION PHASE','TOOLS COPY PHASE','MOVEFILES INSTALL PHASE','REPORTING USER PHASE','FIREWALL PHASE','TRANSCRIPTION HELPERS PHASE')
+    } elseif ($JobName -eq 'Full Update') {
+        $script:TimelineStepOrder = @('DOWNLOAD PHASE','PREPARE / EXTRACT PHASE','STOP SERVICE PHASE','BACKUP PHASE','CLEANUP PHASE','DEPLOY PHASE')
+    } else {
+        $script:TimelineStepOrder = @($JobName.ToUpper())
+    }
+
+    foreach ($s in $script:TimelineStepOrder) {
+        $script:TimelineItems.Add([pscustomobject]@{ Step = $s; State = 'Pending'; Started = ''; Finished = ''; Notes = '' })
+    }
+
+    $tbTimelineCurrent.Text = 'Current: Pending'
+    $tbTimelineNext.Text = "Next: $($script:TimelineStepOrder[0])"
+    $tbTimelineEta.Text = "ETA: ~$($script:TimelineStepOrder.Count * 45)s"
+}
+
+function Update-TimelineFromLog {
+    param([string]$Message)
+
+    if ($Message -notmatch '^===\s*(.+?)\s*===') { return }
+    $step = $Matches[1].Trim().ToUpper()
+
+    $idx = -1
+    for ($i = 0; $i -lt $script:TimelineStepOrder.Count; $i++) {
+        if ($script:TimelineStepOrder[$i] -eq $step) { $idx = $i; break }
+    }
+    if ($idx -lt 0) { return }
+
+    if ($script:TimelineCurrentIndex -ge 0 -and $script:TimelineCurrentIndex -lt $script:TimelineItems.Count) {
+        $prev = $script:TimelineItems[$script:TimelineCurrentIndex]
+        if ($prev.State -eq 'In Progress') {
+            $prev.State = 'Done'
+            $prev.Finished = (Get-Date).ToString('HH:mm:ss')
+            $script:TimelineItems[$script:TimelineCurrentIndex] = $prev
+        }
+    }
+
+    $current = $script:TimelineItems[$idx]
+    $current.State = 'In Progress'
+    $current.Started = (Get-Date).ToString('HH:mm:ss')
+    $current.Notes = 'Running'
+    $script:TimelineItems[$idx] = $current
+    $script:TimelineCurrentIndex = $idx
+
+    $tbTimelineCurrent.Text = "Current: $step"
+    $nextIdx = $idx + 1
+    if ($nextIdx -lt $script:TimelineStepOrder.Count) {
+        $tbTimelineNext.Text = "Next: $($script:TimelineStepOrder[$nextIdx])"
+    } else {
+        $tbTimelineNext.Text = 'Next: Completed'
+    }
+
+    $remainingSteps = [Math]::Max(0, $script:TimelineStepOrder.Count - $idx - 1)
+    $tbTimelineEta.Text = "ETA: ~$($remainingSteps * 45)s"
+}
+
+function Finalize-Timeline {
+    if ($script:TimelineCurrentIndex -ge 0 -and $script:TimelineCurrentIndex -lt $script:TimelineItems.Count) {
+        $last = $script:TimelineItems[$script:TimelineCurrentIndex]
+        if ($last.State -eq 'In Progress') {
+            $last.State = 'Done'
+            $last.Finished = (Get-Date).ToString('HH:mm:ss')
+            $last.Notes = 'Completed'
+            $script:TimelineItems[$script:TimelineCurrentIndex] = $last
+        }
+    }
+    $tbTimelineCurrent.Text = 'Current: Completed'
+    $tbTimelineNext.Text = 'Next: -'
+    $tbTimelineEta.Text = 'ETA: 0s'
+}
+
+function Add-ValidationItem {
+    param([string]$Status, [string]$Check, [string]$Details)
+    $script:ValidationItems.Add([pscustomobject]@{
+        Status = $Status
+        Check = $Check
+        Details = $Details
+    })
+}
+
+function Run-PostInstallValidation {
+    $script:ValidationItems.Clear()
+
+    $installPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+    $serviceName = $tbServiceName.Text.Trim()
+    if ([string]::IsNullOrWhiteSpace($serviceName)) { $serviceName = 'crappserver' }
+
+    Add-ValidationItem ($(if (Test-Path $installPath) { 'PASS' } else { 'FAIL' })) 'Install path exists' $installPath
+    Add-ValidationItem ($(if (Test-Path (Join-Path $installPath 'CrAppServer\\CrAppServer.exe')) { 'PASS' } else { 'FAIL' })) 'CrAppServer executable present' (Join-Path $installPath 'CrAppServer\\CrAppServer.exe')
+    Add-ValidationItem ($(if (Test-Path (Join-Path $installPath 'ClientSoftware')) { 'PASS' } else { 'FAIL' })) 'ClientSoftware folder present' (Join-Path $installPath 'ClientSoftware')
+    Add-ValidationItem ($(if (Test-Path (Join-Path $installPath 'Logs')) { 'PASS' } else { 'WARN' })) 'Logs folder present' (Join-Path $installPath 'Logs')
+
+    $svc = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+    if ($svc) {
+        Add-ValidationItem 'PASS' 'Service exists' "$serviceName ($($svc.Status))"
+        Add-ValidationItem ($(if ($svc.Status -eq 'Running') { 'PASS' } else { 'WARN' })) 'Service running' "$serviceName status: $($svc.Status)"
+    } else {
+        Add-ValidationItem 'FAIL' 'Service exists' "$serviceName not found"
+    }
+
+    $tcpRule = Get-NetFirewallRule -DisplayName "Nixxis $serviceName TCP" -ErrorAction SilentlyContinue
+    $udpRule = Get-NetFirewallRule -DisplayName "Nixxis $serviceName UDP" -ErrorAction SilentlyContinue
+    Add-ValidationItem ($(if ($tcpRule -and $udpRule) { 'PASS' } else { 'WARN' })) 'Firewall rules' "TCP/UDP rules for $serviceName"
+
+    $pass = ($script:ValidationItems | Where-Object Status -eq 'PASS').Count
+    $warn = ($script:ValidationItems | Where-Object Status -eq 'WARN').Count
+    $fail = ($script:ValidationItems | Where-Object Status -eq 'FAIL').Count
+    $tbValidationSummary.Text = "PASS=$pass  WARN=$warn  FAIL=$fail"
+    $tcOps.SelectedIndex = 4
+}
+
+function Export-SignedOperationReport {
+    $workRoot = $tbWorkDir.Text.Trim()
+    if ([string]::IsNullOrWhiteSpace($workRoot)) { $workRoot = 'C:\NixxisMaintenance\Update' }
+    $reportsDir = Join-Path $workRoot 'Reports'
+    if (-not (Test-Path $reportsDir)) {
+        New-Item -Path $reportsDir -ItemType Directory -Force | Out-Null
+    }
+
+    $payload = [ordered]@{
+        appName = 'NCS Installer / Updater'
+        appVersion = $script:AppVersion
+        generatedAt = (Get-Date).ToString('s')
+        user = $env:USERNAME
+        host = $env:COMPUTERNAME
+        mode = if ($rbModeInstall.IsChecked) { 'Fresh Install' } else { 'Update Existing' }
+        sourceMode = if ($rbOffline.IsChecked) { 'Offline' } elseif ($rbOnlineCustom.IsChecked) { 'Online Custom' } elseif ($rbOnlineSelect.IsChecked) { 'Online Select' } else { 'Online Auto' }
+        installPath = $tbInstallPath.Text.Trim().TrimEnd('\\')
+        serviceName = $tbServiceName.Text.Trim()
+        selectedVersions = [ordered]@{
+            base = $sync.SelectedBaseVersion
+            client = $sync.SelectedClientVersion
+            server = $sync.SelectedServerVersion
+        }
+        plan = @($script:PlanItems)
+        preflight = @($script:PreflightItems)
+        timeline = @($script:TimelineItems)
+        validation = @($script:ValidationItems)
+        lastStatus = $tbStatus.Text
+    }
+
+    $payloadJson = $payload | ConvertTo-Json -Depth 8
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($payloadJson)
+        $hash = [BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $sha.Dispose()
+    }
+
+    $report = [ordered]@{
+        payload = $payload
+        signature = [ordered]@{
+            algorithm = 'SHA256'
+            signedAt = (Get-Date).ToString('s')
+            signedBy = "$env:USERNAME@$env:COMPUTERNAME"
+            digest = $hash
+        }
+    }
+
+    $reportFile = Join-Path $reportsDir ("NCS_OperationReport_{0}.json" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+    $report | ConvertTo-Json -Depth 10 | Set-Content -Path $reportFile -Encoding UTF8
+    Add-LogEntry "Signed operation report exported: $reportFile" 'OK'
+}
 #endregion
 
 #region --- Runspace Job Runner ---
@@ -639,6 +1092,7 @@ function Start-NixxisJob {
 
     Set-Busy $true
     Set-Status "Running: $JobName" 5
+    Initialize-Timeline $JobName
 
     # Snapshot UI values for runspace
     $mode      = if ($rbOnlineAuto.IsChecked)    { 'online-auto' }
@@ -745,6 +1199,7 @@ function Start-NixxisJob {
             $j.ps.Dispose()
             $j.rs.Dispose()
 
+            Finalize-Timeline
             Set-Busy $false
             Set-Status "Done: $($j.name)" 100
             Update-ServiceStatus
@@ -1509,6 +1964,11 @@ $btnBrowseOffline.Add_Click({
 
 $btnRefreshStatus.Add_Click({ Update-ServiceStatus })
 
+$btnGeneratePlan.Add_Click({ Build-ExecutionPlan })
+$btnRunPreflight.Add_Click({ Run-PreflightChecks })
+$btnRunValidation.Add_Click({ Run-PostInstallValidation })
+$btnExportSignedReport.Add_Click({ Export-SignedOperationReport })
+
 $btnClearLog.Add_Click({
     $rtbLog.Document.Blocks.Clear()
     $sync.LogLines.Clear()
@@ -1546,26 +2006,32 @@ $btnOpenReportBin.Add_Click({
 
 # Operation buttons
 $btnRunInitialSetup.Add_Click({
+    if (-not (Ensure-PlanApproved)) { return }
     Add-LogEntry '==== INITIAL SETUP ====' 'HEADER'
     Set-Status 'Running initial setup...' 0
     $initialSetupScript = New-InitialSetupScriptBlock
     Start-NixxisJob $initialSetupScript 'Initial Setup'
 })
 $btnEnsureDotNet48.Add_Click({     Add-LogEntry '==== ENSURE .NET 4.8 ====' 'HEADER'; Set-Status 'Checking .NET...' 0; Start-NixxisJob $sbEnsureDotNet48 'Ensure .NET 4.8' })
-$btnRunFull.Add_Click({     Add-LogEntry '==== FULL UPDATE ====' 'HEADER';   Set-Status 'Running full update...' 0;  Start-NixxisJob $sbFullUpdate    'Full Update'   })
+$btnRunFull.Add_Click({
+    if (-not (Ensure-PlanApproved)) { return }
+    Add-LogEntry '==== FULL UPDATE ====' 'HEADER'
+    Set-Status 'Running full update...' 0
+    Start-NixxisJob $sbFullUpdate 'Full Update'
+})
 $btnDownload.Add_Click({    Add-LogEntry '==== DOWNLOAD ====' 'HEADER';      Set-Status 'Downloading ZIPs...' 0;    Start-NixxisJob $sbDownload      'Download'      })
 $btnPrepare.Add_Click({     Add-LogEntry '==== PREPARE ====' 'HEADER';       Set-Status 'Preparing files...' 0;     Start-NixxisJob $sbPrepare       'Prepare'       })
-$btnStopService.Add_Click({ Add-LogEntry '==== STOP SERVICE ====' 'HEADER';  Set-Status 'Stopping service...' 0;    Start-NixxisJob $sbStopService   'Stop Service'  })
-$btnBackup.Add_Click({      Add-LogEntry '==== BACKUP ====' 'HEADER';        Set-Status 'Backing up...' 0;         Start-NixxisJob $sbBackup        'Backup'        })
-$btnCleanup.Add_Click({     Add-LogEntry '==== CLEANUP ====' 'HEADER';       Set-Status 'Cleaning up...' 0;        Start-NixxisJob $sbCleanup       'Cleanup'       })
-$btnDeploy.Add_Click({      Add-LogEntry '==== DEPLOY ====' 'HEADER';        Set-Status 'Deploying...' 0;          Start-NixxisJob $sbDeploy        'Deploy'        })
+$btnStopService.Add_Click({ if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== STOP SERVICE ====' 'HEADER';  Set-Status 'Stopping service...' 0;    Start-NixxisJob $sbStopService   'Stop Service'  })
+$btnBackup.Add_Click({      if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== BACKUP ====' 'HEADER';        Set-Status 'Backing up...' 0;         Start-NixxisJob $sbBackup        'Backup'        })
+$btnCleanup.Add_Click({     if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== CLEANUP ====' 'HEADER';       Set-Status 'Cleaning up...' 0;        Start-NixxisJob $sbCleanup       'Cleanup'       })
+$btnDeploy.Add_Click({      if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== DEPLOY ====' 'HEADER';        Set-Status 'Deploying...' 0;          Start-NixxisJob $sbDeploy        'Deploy'        })
 $btnStartService.Add_Click({Add-LogEntry '==== START SERVICE ====' 'HEADER'; Set-Status 'Starting service...' 0;   Start-NixxisJob $sbStartService  'Start Service' })
-$btnInstallService.Add_Click({     Add-LogEntry '==== INSTALL SERVICE ====' 'HEADER'; Set-Status 'Installing service...' 0; Start-NixxisJob $sbInstallService 'Install Service' })
-$btnCopyTools.Add_Click({          Add-LogEntry '==== COPY TOOLS ====' 'HEADER';      Set-Status 'Copying tools...' 0;      Start-NixxisJob $sbCopyTools 'Copy Tools' })
-$btnInstallMoveFiles.Add_Click({   Add-LogEntry '==== INSTALL MOVEFILES ====' 'HEADER'; Set-Status 'Installing MoveFiles...' 0; Start-NixxisJob $sbInstallMoveFiles 'Install MoveFiles' })
-$btnCreateReportingUser.Add_Click({Add-LogEntry '==== CREATE REPORTING USER ====' 'HEADER'; Set-Status 'Creating Reporting user...' 0; Start-NixxisJob $sbCreateReportingUser 'Create Reporting User' })
-$btnConfigFirewall.Add_Click({     Add-LogEntry '==== CONFIG FIREWALL ====' 'HEADER'; Set-Status 'Configuring firewall...' 0; Start-NixxisJob $sbConfigFirewall 'Configure Firewall' })
-$btnDeployTranscription.Add_Click({Add-LogEntry '==== DEPLOY TRANSCRIPTION ====' 'HEADER'; Set-Status 'Deploying transcription helpers...' 0; Start-NixxisJob $sbDeployTranscription 'Deploy Transcription Helpers' })
+$btnInstallService.Add_Click({     if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== INSTALL SERVICE ====' 'HEADER'; Set-Status 'Installing service...' 0; Start-NixxisJob $sbInstallService 'Install Service' })
+$btnCopyTools.Add_Click({          if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== COPY TOOLS ====' 'HEADER';      Set-Status 'Copying tools...' 0;      Start-NixxisJob $sbCopyTools 'Copy Tools' })
+$btnInstallMoveFiles.Add_Click({   if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== INSTALL MOVEFILES ====' 'HEADER'; Set-Status 'Installing MoveFiles...' 0; Start-NixxisJob $sbInstallMoveFiles 'Install MoveFiles' })
+$btnCreateReportingUser.Add_Click({if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== CREATE REPORTING USER ====' 'HEADER'; Set-Status 'Creating Reporting user...' 0; Start-NixxisJob $sbCreateReportingUser 'Create Reporting User' })
+$btnConfigFirewall.Add_Click({     if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== CONFIG FIREWALL ====' 'HEADER'; Set-Status 'Configuring firewall...' 0; Start-NixxisJob $sbConfigFirewall 'Configure Firewall' })
+$btnDeployTranscription.Add_Click({if (-not (Ensure-PlanApproved)) { return }; Add-LogEntry '==== DEPLOY TRANSCRIPTION ====' 'HEADER'; Set-Status 'Deploying transcription helpers...' 0; Start-NixxisJob $sbDeployTranscription 'Deploy Transcription Helpers' })
 $btnLaunchDeployReports.Add_Click({Add-LogEntry '==== LAUNCH DEPLOY REPORTS ====' 'HEADER'; Set-Status 'Launching DeployReports...' 0; Start-NixxisJob $sbLaunchDeployReports 'Launch DeployReports' })
 #endregion
 
