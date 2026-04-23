@@ -27,34 +27,34 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 <Window
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Nixxis Maintenance Tool"
-    Height="740" Width="1160"
+    Title="Nixxis NCS Installer and Updater"
+    Height="760" Width="1180"
     MinHeight="620" MinWidth="960"
     WindowStartupLocation="CenterScreen"
-    Background="#1e1e1e"
+    Background="#0f141a"
     FontFamily="Segoe UI"
     FontSize="13">
 
     <Window.Resources>
         <Style x:Key="PrimaryBtn" TargetType="Button">
-            <Setter Property="Background" Value="#0078d4"/>
+            <Setter Property="Background" Value="#0e7490"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="Margin" Value="3,3"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="2,2"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#1489e0"/></Trigger>
-                            <Trigger Property="IsPressed"   Value="True"><Setter TargetName="bd" Property="Background" Value="#005fa3"/></Trigger>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Background" Value="#0891b2"/></Trigger>
+                            <Trigger Property="IsPressed"   Value="True"><Setter TargetName="bd" Property="Background" Value="#0f5f73"/></Trigger>
                             <Trigger Property="IsEnabled"   Value="False">
-                                <Setter TargetName="bd" Property="Background" Value="#3a3a3a"/>
-                                <Setter Property="Foreground" Value="#555"/>
+                                <Setter TargetName="bd" Property="Background" Value="#29323d"/>
+                                <Setter Property="Foreground" Value="#607080"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -62,45 +62,59 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             </Setter>
         </Style>
         <Style x:Key="ActionBtn" TargetType="Button" BasedOn="{StaticResource PrimaryBtn}">
-            <Setter Property="Background" Value="#2d2d30"/>
+            <Setter Property="Background" Value="#1b2530"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Height" Value="27"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+        <Style x:Key="UpdatePrimaryBtn" TargetType="Button" BasedOn="{StaticResource PrimaryBtn}">
+            <Setter Property="Background" Value="#0e7490"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="InstallPrimaryBtn" TargetType="Button" BasedOn="{StaticResource PrimaryBtn}">
+            <Setter Property="Background" Value="#2f855a"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style x:Key="GreenBtn" TargetType="Button" BasedOn="{StaticResource ActionBtn}">
-            <Setter Property="Background" Value="#1e6e42"/>
+            <Setter Property="Background" Value="#2f855a"/>
         </Style>
         <Style TargetType="GroupBox">
-            <Setter Property="Foreground" Value="#9cdcfe"/>
-            <Setter Property="BorderBrush" Value="#3a3a3a"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Foreground" Value="#8bc3d8"/>
+            <Setter Property="BorderBrush" Value="#2c3a46"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Padding" Value="7"/>
         </Style>
         <Style TargetType="TextBox">
-            <Setter Property="Background" Value="#3c3c3c"/>
-            <Setter Property="Foreground" Value="#d4d4d4"/>
-            <Setter Property="BorderBrush" Value="#555"/>
+            <Setter Property="Background" Value="#17202b"/>
+            <Setter Property="Foreground" Value="#dde7ef"/>
+            <Setter Property="BorderBrush" Value="#334354"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="6,4"/>
-            <Setter Property="Margin" Value="2,2"/>
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="Margin" Value="2,1"/>
             <Setter Property="CaretBrush" Value="White"/>
         </Style>
         <Style TargetType="RadioButton">
-            <Setter Property="Foreground" Value="#d4d4d4"/>
-            <Setter Property="Margin" Value="0,4"/>
+            <Setter Property="Foreground" Value="#d3dfeb"/>
+            <Setter Property="Margin" Value="0,2"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="#d4d4d4"/>
-            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="Foreground" Value="#d3dfeb"/>
+            <Setter Property="Margin" Value="0,2"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style TargetType="Label">
-            <Setter Property="Foreground" Value="#cccccc"/>
+            <Setter Property="Foreground" Value="#b8c6d3"/>
             <Setter Property="Padding" Value="2,2"/>
             <Setter Property="FontSize" Value="11"/>
         </Style>
         <Style TargetType="Separator">
-            <Setter Property="Background" Value="#3a3a3a"/>
-            <Setter Property="Margin" Value="0,5"/>
+            <Setter Property="Background" Value="#2c3a46"/>
+            <Setter Property="Margin" Value="0,4"/>
         </Style>
     </Window.Resources>
 
@@ -112,23 +126,23 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
         </Grid.RowDefinitions>
 
         <!-- HEADER -->
-        <Border Grid.Row="0" Background="#252526" BorderBrush="#0078d4" BorderThickness="0,0,0,2">
+        <Border Grid.Row="0" Background="#111a22" BorderBrush="#0e7490" BorderThickness="0,0,0,2">
             <Grid Margin="14,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="&#9881;" Foreground="#0078d4" FontSize="26" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="&#9881;" Foreground="#0ea5c5" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Nixxis Maintenance Tool" Foreground="White" FontSize="17" FontWeight="SemiBold"/>
-                        <TextBlock Text="Automated Update &amp; Deployment  |  v1.4" Foreground="#777" FontSize="11"/>
+                        <TextBlock Text="Nixxis NCS Installer / Updater" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock Text="Explicit flows for Fresh Install and Existing Update" Foreground="#7e93a8" FontSize="10"/>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0">
-                    <Border Background="#1e1e1e" CornerRadius="4" Padding="10,5" Margin="0,0,8,0">
+                    <Border Background="#0f141a" CornerRadius="5" Padding="9,4" Margin="0,0,6,0">
                         <StackPanel Orientation="Horizontal">
                             <Ellipse x:Name="ellServiceDot" Width="9" Height="9" Fill="#888" Margin="0,0,7,0" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="tbServiceStatus" Text="Service: Unknown" Foreground="#aaa" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="tbServiceStatus" Text="Service: Unknown" Foreground="#b8c6d3" FontSize="11" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Button x:Name="btnRefreshStatus" Content="Refresh" Style="{StaticResource ActionBtn}" Width="80" Height="30" FontSize="12"/>
+                    <Button x:Name="btnRefreshStatus" Content="Refresh" Style="{StaticResource ActionBtn}" Width="74"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -136,7 +150,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
         <!-- MAIN -->
         <Grid Grid.Row="1" Margin="8,8,8,4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="320"/>
                 <ColumnDefinition Width="6"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -180,6 +194,20 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </StackPanel>
                     </GroupBox>
 
+                    <!-- Operation Mode -->
+                    <GroupBox Header="  Operation Mode  ">
+                        <StackPanel>
+                            <RadioButton x:Name="rbModeUpdate" Content="Update Existing NCS" IsChecked="True"/>
+                            <TextBlock Foreground="#879aab" FontSize="10" Margin="18,0,0,2" Text="Use when NCS already exists and you want to refresh binaries."/>
+                            <RadioButton x:Name="rbModeInstall" Content="Fresh Install NCS"/>
+                            <TextBlock Foreground="#879aab" FontSize="10" Margin="18,0,0,2" Text="Use on new servers or complete rebuilds with initial setup tasks."/>
+                            <Border Background="#152532" CornerRadius="5" Padding="8,6" Margin="0,4,0,0">
+                                <TextBlock x:Name="tbModeHint" Foreground="#9bd3e6" FontSize="10" TextWrapping="Wrap"
+                                           Text="Mode: Update Existing NCS. Update workflow buttons are visible below."/>
+                            </Border>
+                        </StackPanel>
+                    </GroupBox>
+
                     <!-- Source Mode -->
                     <GroupBox Header="  Source Mode  ">
                         <StackPanel>
@@ -213,68 +241,72 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </StackPanel>
                     </GroupBox>
 
-                    <!-- Full Update -->
-                    <GroupBox Header="  Full Update  ">
-                        <StackPanel>
-                            <Button x:Name="btnRunFull"
-                                    Content="&#9658;  Run Full Update"
-                                    Style="{StaticResource PrimaryBtn}"
-                                    HorizontalAlignment="Stretch"
-                                    Height="44" FontSize="15" FontWeight="SemiBold"/>
-                            <TextBlock Foreground="#666" FontSize="10" TextWrapping="Wrap" Margin="4,5,4,0"
-                                       Text="Download  |  Extract  |  Stop Service  |  Backup  |  Cleanup  |  Deploy"/>
-                        </StackPanel>
-                    </GroupBox>
+                    <StackPanel x:Name="pnlUpdateFlow">
+                        <!-- Update Flow -->
+                        <GroupBox Header="  Update Existing NCS  ">
+                            <StackPanel>
+                                <Button x:Name="btnRunFull"
+                                        Content="Run Update Flow"
+                                        Style="{StaticResource UpdatePrimaryBtn}"
+                                        HorizontalAlignment="Stretch"/>
+                                <TextBlock Foreground="#7f93a7" FontSize="10" TextWrapping="Wrap" Margin="4,4,4,0"
+                                           Text="Download, extract, stop service, backup, cleanup and deploy binaries."/>
+                            </StackPanel>
+                        </GroupBox>
 
-                    <!-- Individual Steps -->
-                    <GroupBox Header="  Individual Steps  ">
-                        <StackPanel>
-                            <Button x:Name="btnDownload"     Content="&#9312; Download ZIPs"              Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnPrepare"      Content="&#9313; Extract / Prepare Files"    Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Separator/>
-                            <Button x:Name="btnStopService"  Content="&#9314; Stop Nixxis Service"        Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnBackup"       Content="&#9315; Backup Current Nixxis"      Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnCleanup"      Content="&#9316; Cleanup Old Files"          Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Button x:Name="btnDeploy"       Content="&#9317; Deploy New Files"           Style="{StaticResource ActionBtn}" Height="33"/>
-                            <Separator/>
-                            <Button x:Name="btnStartService" Content="Start Nixxis Service"               Style="{StaticResource GreenBtn}"  Height="33"/>
-                        </StackPanel>
-                    </GroupBox>
+                        <GroupBox Header="  Update Steps (Advanced)  ">
+                            <StackPanel>
+                                <Button x:Name="btnDownload"     Content="1. Download ZIPs"              Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnPrepare"      Content="2. Extract and Prepare"        Style="{StaticResource ActionBtn}"/>
+                                <Separator/>
+                                <Button x:Name="btnStopService"  Content="3. Stop Nixxis Service"       Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnBackup"       Content="4. Backup Current NCS"        Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnCleanup"      Content="5. Cleanup Old Files"         Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnDeploy"       Content="6. Deploy New Files"          Style="{StaticResource ActionBtn}"/>
+                                <Separator/>
+                                <Button x:Name="btnStartService" Content="Start Nixxis Service"         Style="{StaticResource GreenBtn}"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
 
-                    <!-- Initial Setup Options -->
-                    <GroupBox Header="  Initial Setup Options  ">
-                        <StackPanel>
-                            <CheckBox x:Name="cbEnsureDotNet48"       Content="Ensure .NET Framework 4.8" IsChecked="True"/>
-                            <CheckBox x:Name="cbInstallMoveFiles"     Content="Install MoveFiles service" IsChecked="True"/>
-                            <CheckBox x:Name="cbCreateReportingUser"  Content="Create local Reporting user" IsChecked="False"/>
-                            <CheckBox x:Name="cbConfigureFirewall"    Content="Create firewall rules (TCP/UDP)" IsChecked="True"/>
-                            <CheckBox x:Name="cbDeployTranscription"  Content="Deploy transcription helper files" IsChecked="False"/>
-                        </StackPanel>
-                    </GroupBox>
+                    <StackPanel x:Name="pnlInstallFlow" Visibility="Collapsed">
+                        <!-- Fresh Install Options -->
+                        <GroupBox Header="  Fresh Install Options  ">
+                            <StackPanel>
+                                <CheckBox x:Name="cbEnsureDotNet48"       Content="Ensure .NET Framework 4.8" IsChecked="True"/>
+                                <CheckBox x:Name="cbInstallMoveFiles"     Content="Install MoveFiles service" IsChecked="True"/>
+                                <CheckBox x:Name="cbCreateReportingUser"  Content="Create local Reporting user" IsChecked="False"/>
+                                <CheckBox x:Name="cbConfigureFirewall"    Content="Create firewall rules (TCP/UDP)" IsChecked="True"/>
+                                <CheckBox x:Name="cbDeployTranscription"  Content="Deploy transcription helper files" IsChecked="False"/>
+                            </StackPanel>
+                        </GroupBox>
 
-                    <!-- Initial Setup Steps -->
-                    <GroupBox Header="  Initial Setup Steps  ">
-                        <StackPanel>
-                            <Button x:Name="btnRunInitialSetup"       Content="Run Initial Setup (Install Script Parity)" Style="{StaticResource PrimaryBtn}" Height="38" FontSize="12"/>
-                            <Separator/>
-                            <Button x:Name="btnEnsureDotNet48"        Content="Check / Install .NET Framework 4.8" Style="{StaticResource ActionBtn}" Height="31"/>
-                            <Button x:Name="btnInstallService"        Content="Install CrAppServer Service"      Style="{StaticResource ActionBtn}" Height="31"/>
-                            <Button x:Name="btnCopyTools"             Content="Copy Tools Folder"                 Style="{StaticResource ActionBtn}" Height="31"/>
-                            <Button x:Name="btnInstallMoveFiles"      Content="Install MoveFiles Service"         Style="{StaticResource ActionBtn}" Height="31"/>
-                            <Button x:Name="btnCreateReportingUser"   Content="Create Reporting Local User"       Style="{StaticResource ActionBtn}" Height="31"/>
-                            <Button x:Name="btnConfigFirewall"        Content="Configure Firewall Rules"          Style="{StaticResource ActionBtn}" Height="31"/>
-                            <Button x:Name="btnDeployTranscription"   Content="Deploy Transcription Helpers"      Style="{StaticResource ActionBtn}" Height="31"/>
-                            <Button x:Name="btnLaunchDeployReports"   Content="Launch DeployReports.exe"         Style="{StaticResource GreenBtn}"  Height="31"/>
-                        </StackPanel>
-                    </GroupBox>
+                        <!-- Fresh Install Steps -->
+                        <GroupBox Header="  Fresh Install NCS  ">
+                            <StackPanel>
+                                <Button x:Name="btnRunInitialSetup"       Content="Run Fresh Install Flow" Style="{StaticResource InstallPrimaryBtn}"/>
+                                <TextBlock Foreground="#7f93a7" FontSize="10" TextWrapping="Wrap" Margin="4,4,4,2"
+                                           Text="Includes install tasks: service install, tools, firewall, MoveFiles and optional helpers."/>
+                                <Separator/>
+                                <Button x:Name="btnEnsureDotNet48"        Content="Check / Install .NET 4.8"         Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnInstallService"        Content="Install CrAppServer Service"      Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnCopyTools"             Content="Copy Tools Folder"                Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnInstallMoveFiles"      Content="Install MoveFiles Service"        Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnCreateReportingUser"   Content="Create Reporting Local User"      Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnConfigFirewall"        Content="Configure Firewall Rules"         Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnDeployTranscription"   Content="Deploy Transcription Helpers"     Style="{StaticResource ActionBtn}"/>
+                                <Button x:Name="btnLaunchDeployReports"   Content="Launch DeployReports.exe"        Style="{StaticResource GreenBtn}"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
 
                     <!-- Quick Actions -->
                     <GroupBox Header="  Quick Actions  ">
                         <UniformGrid Columns="1" Rows="4">
-                            <Button x:Name="btnOpenWork"    Content="Open Working Directory" Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
-                            <Button x:Name="btnOpenLogs"    Content="Open Logs Folder"       Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
-                            <Button x:Name="btnOpenNixxis"  Content="Open Install Folder"      Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
-                            <Button x:Name="btnOpenReportBin" Content="Open Reporting Bin Hint" Style="{StaticResource ActionBtn}" Height="29" FontSize="11"/>
+                            <Button x:Name="btnOpenWork"    Content="Open Working Directory" Style="{StaticResource ActionBtn}"/>
+                            <Button x:Name="btnOpenLogs"    Content="Open Logs Folder"       Style="{StaticResource ActionBtn}"/>
+                            <Button x:Name="btnOpenNixxis"  Content="Open Install Folder"    Style="{StaticResource ActionBtn}"/>
+                            <Button x:Name="btnOpenReportBin" Content="Open Reporting Bin Hint" Style="{StaticResource ActionBtn}"/>
                         </UniformGrid>
                     </GroupBox>
 
@@ -292,9 +324,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Background="#252526" CornerRadius="4,4,0,0" Padding="10,6" Margin="0,0,0,1">
+                <Border Grid.Row="0" Background="#111a22" CornerRadius="5,5,0,0" Padding="10,6" Margin="0,0,0,1">
                     <Grid>
-                        <TextBlock Text="ACTIVITY LOG" Foreground="#9cdcfe" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Text="ACTIVITY LOG" Foreground="#8bc3d8" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button x:Name="btnClearLog" Content="Clear"    Style="{StaticResource ActionBtn}" Height="24" Width="55" FontSize="11" Margin="2,0"/>
                             <Button x:Name="btnSaveLog"  Content="Save Log" Style="{StaticResource ActionBtn}" Height="24" Width="68" FontSize="11" Margin="2,0"/>
@@ -303,8 +335,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 </Border>
 
                 <RichTextBox x:Name="rtbLog" Grid.Row="1"
-                             Background="#0d1117" Foreground="#c8c8c8"
-                             BorderBrush="#3a3a3a" BorderThickness="1"
+                             Background="#0b1117" Foreground="#c8d3dd"
+                             BorderBrush="#2c3a46" BorderThickness="1"
                              IsReadOnly="True"
                              FontFamily="Consolas,Courier New" FontSize="12"
                              VerticalScrollBarVisibility="Auto"
@@ -315,9 +347,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     </RichTextBox.Document>
                 </RichTextBox>
 
-                <StackPanel Grid.Row="2" Background="#1a1a1a" Margin="0,1,0,0">
+                <StackPanel Grid.Row="2" Background="#111a22" Margin="0,1,0,0">
                     <ProgressBar x:Name="progressBar" Height="5" Value="0" Maximum="100"
-                                 Background="#1a1a1a" Foreground="#0078d4" BorderThickness="0"/>
+                                 Background="#111a22" Foreground="#0e7490" BorderThickness="0"/>
                     <Grid Margin="8,4">
                         <TextBlock x:Name="tbStatus"  Text="Ready" Foreground="#666" FontSize="11"/>
                         <TextBlock x:Name="tbElapsed" Text=""      Foreground="#555" FontSize="11" HorizontalAlignment="Right"/>
@@ -327,7 +359,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
         </Grid>
 
         <!-- FOOTER -->
-        <Border Grid.Row="2" Background="#252526" BorderBrush="#333" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Background="#111a22" BorderBrush="#2c3a46" BorderThickness="0,1,0,0">
             <Grid Margin="12,0">
                 <TextBlock x:Name="tbLogFile" Text="Log: initializing..." Foreground="#444" FontSize="10" VerticalAlignment="Center"/>
             </Grid>
@@ -342,6 +374,11 @@ $reader  = [System.Xml.XmlNodeReader]::new($xaml)
 $window  = [Windows.Markup.XamlReader]::Load($reader)
 function ctrl($n) { $window.FindName($n) }
 
+$rbModeUpdate   = ctrl 'rbModeUpdate'
+$rbModeInstall  = ctrl 'rbModeInstall'
+$tbModeHint     = ctrl 'tbModeHint'
+$pnlUpdateFlow  = ctrl 'pnlUpdateFlow'
+$pnlInstallFlow = ctrl 'pnlInstallFlow'
 $rbOnlineAuto    = ctrl 'rbOnlineAuto'
 $rbOnlineCustom  = ctrl 'rbOnlineCustom'
 $rbOffline       = ctrl 'rbOffline'
@@ -485,6 +522,20 @@ function Update-ServiceStatus {
 function Update-RunDirLabel {
     $dateFolder = Get-Date -Format 'yyyyMMdd'
     $tbRunDir.Text = "Active folder:  $($sync.WorkDir)\$dateFolder"
+}
+
+function Update-OperationModeUI {
+    if ($rbModeInstall.IsChecked) {
+        $pnlInstallFlow.Visibility = 'Visible'
+        $pnlUpdateFlow.Visibility = 'Collapsed'
+        $tbModeHint.Text = 'Mode: Fresh Install NCS. Install workflow controls are visible.'
+        Add-LogEntry 'Switched to Fresh Install mode.' 'CYAN'
+    } else {
+        $pnlInstallFlow.Visibility = 'Collapsed'
+        $pnlUpdateFlow.Visibility = 'Visible'
+        $tbModeHint.Text = 'Mode: Update Existing NCS. Update workflow controls are visible.'
+        Add-LogEntry 'Switched to Update Existing mode.' 'CYAN'
+    }
 }
 #endregion
 
@@ -1213,6 +1264,8 @@ $sbFullUpdate = [scriptblock]::Create(
 #region --- Event Handlers ---
 
 # Mode radio toggles
+$rbModeInstall.Add_Checked({ Update-OperationModeUI })
+$rbModeUpdate.Add_Checked({ Update-OperationModeUI })
 $rbOnlineCustom.Add_Checked({ $pnlCustomUrls.Visibility  = 'Visible';   $pnlOfflinePath.Visibility = 'Collapsed' })
 $rbOffline.Add_Checked({      $pnlOfflinePath.Visibility = 'Visible';   $pnlCustomUrls.Visibility  = 'Collapsed' })
 $rbOnlineAuto.Add_Checked({   $pnlCustomUrls.Visibility  = 'Collapsed'; $pnlOfflinePath.Visibility = 'Collapsed' })
@@ -1315,6 +1368,7 @@ $btnLaunchDeployReports.Add_Click({Add-LogEntry '==== LAUNCH DEPLOY REPORTS ====
 
 #region --- Startup ---
 Update-RunDirLabel
+Update-OperationModeUI
 Add-LogEntry 'Nixxis Maintenance Tool ready.' 'HEADER'
 Add-LogEntry "User: $env:USERNAME  |  Host: $env:COMPUTERNAME" 'GRAY'
 Add-LogEntry "Log file: $logFile" 'GRAY'
