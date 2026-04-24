@@ -22,7 +22,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-$script:AppVersion = '1.2'
+$script:AppVersion = '1.3'
 
 #region --- XAML ---
 [xml]$xaml = @'
@@ -1064,44 +1064,115 @@ function Initialize-Timeline {
 function Update-TimelineFromLog {
     param([string]$Message)
 
-    if ($Message -notmatch '^===\s*(.+?)\s*===') { return }
-    $step = $Matches[1].Trim().ToUpper()
+    if ([string]::IsNullOrWhiteSpace($Message)) { return }
+    $normalizedMessage = $Message.Trim()
 
-    $idx = -1
-    for ($i = 0; $i -lt $script:TimelineStepOrder.Count; $i++) {
-        if ($script:TimelineStepOrder[$i] -eq $step) { $idx = $i; break }
-    }
-    if ($idx -lt 0) { return }
-
-    if ($script:TimelineCurrentIndex -ge 0 -and $script:TimelineCurrentIndex -lt $script:TimelineItems.Count) {
-        $prev = $script:TimelineItems[$script:TimelineCurrentIndex]
-        if ($prev.State -eq 'In Progress') {
-            $prev.State = 'Done'
-            $prev.Finished = (Get-Date).ToString('HH:mm:ss')
-            $script:TimelineItems[$script:TimelineCurrentIndex] = $prev
+    $findStepIndex = {
+        param([string]$Name)
+        for ($j = 0; $j -lt $script:TimelineStepOrder.Count; $j++) {
+            if ($script:TimelineStepOrder[$j] -eq $Name) { return $j }
         }
+        return -1
     }
 
-    $current = $script:TimelineItems[$idx]
-    $current.State = 'In Progress'
-    $current.Started = (Get-Date).ToString('HH:mm:ss')
-    $current.Notes = 'Running'
-    $script:TimelineItems[$idx] = $current
-    $script:TimelineCurrentIndex = $idx
+    if ($normalizedMessage -match '===\s*(.+?)\s*===') {
+        $step = $Matches[1].Trim().ToUpper()
 
-    $tbTimelineCurrent.Text = "Current: $step"
-    $nextIdx = $idx + 1
-    if ($nextIdx -lt $script:TimelineStepOrder.Count) {
-        $tbTimelineNext.Text = "Next: $($script:TimelineStepOrder[$nextIdx])"
-    } else {
+        $idx = & $findStepIndex $step
+        if ($idx -lt 0 -and $step -notmatch '\s+PHASE$') {
+            $idx = & $findStepIndex ($step + ' PHASE')
+            if ($idx -ge 0) {
+                $step = $step + ' PHASE'
+            }
+        }
+        if ($idx -lt 0) { return }
+
+        if ($script:TimelineCurrentIndex -ge 0 -and $script:TimelineCurrentIndex -lt $script:TimelineItems.Count) {
+            $prev = $script:TimelineItems[$script:TimelineCurrentIndex]
+            if ($prev.State -eq 'In Progress') {
+                $prev.State = 'Done'
+                $prev.Finished = (Get-Date).ToString('HH:mm:ss')
+                $script:TimelineItems[$script:TimelineCurrentIndex] = $prev
+            }
+        }
+
+        $current = $script:TimelineItems[$idx]
+        $current.State = 'In Progress'
+        $current.Started = (Get-Date).ToString('HH:mm:ss')
+        $current.Notes = 'Running'
+        $script:TimelineItems[$idx] = $current
+        $script:TimelineCurrentIndex = $idx
+
+        $tbTimelineCurrent.Text = "Current: $step"
+        $nextIdx = $idx + 1
+        if ($nextIdx -lt $script:TimelineStepOrder.Count) {
+            $tbTimelineNext.Text = "Next: $($script:TimelineStepOrder[$nextIdx])"
+        } else {
+            $tbTimelineNext.Text = 'Next: Completed'
+        }
+
+        $remainingSteps = [Math]::Max(0, $script:TimelineStepOrder.Count - $idx - 1)
+        $tbTimelineEta.Text = "ETA: ~$($remainingSteps * 45)s"
+        return
+    }
+
+    if ($normalizedMessage -match '^(.+?)\s+phase complete\.$') {
+        $completedStep = ($Matches[1].Trim().ToUpper() + ' PHASE')
+        $doneIdx = & $findStepIndex $completedStep
+        if ($doneIdx -lt 0) { return }
+
+        $doneItem = $script:TimelineItems[$doneIdx]
+        $doneItem.State = 'Done'
+        if (-not $doneItem.Started) { $doneItem.Started = (Get-Date).ToString('HH:mm:ss') }
+        $doneItem.Finished = (Get-Date).ToString('HH:mm:ss')
+        $doneItem.Notes = 'Completed'
+        $script:TimelineItems[$doneIdx] = $doneItem
+        if ($doneIdx -gt $script:TimelineCurrentIndex) { $script:TimelineCurrentIndex = $doneIdx }
+
+        $tbTimelineCurrent.Text = "Current: $completedStep"
+        $nextDoneIdx = $doneIdx + 1
+        if ($nextDoneIdx -lt $script:TimelineStepOrder.Count) {
+            $tbTimelineNext.Text = "Next: $($script:TimelineStepOrder[$nextDoneIdx])"
+        } else {
+            $tbTimelineNext.Text = 'Next: Completed'
+        }
+
+        $remainingDoneSteps = [Math]::Max(0, $script:TimelineStepOrder.Count - $doneIdx - 1)
+        $tbTimelineEta.Text = "ETA: ~$($remainingDoneSteps * 45)s"
+        return
+    }
+
+    if ($normalizedMessage -match '^Service status:\s*Running\b') {
+        $serviceIdx = & $findStepIndex 'START SERVICE'
+        if ($serviceIdx -lt 0) { return }
+
+        $svcItem = $script:TimelineItems[$serviceIdx]
+        if (-not $svcItem.Started) { $svcItem.Started = (Get-Date).ToString('HH:mm:ss') }
+        $svcItem.State = 'Done'
+        $svcItem.Finished = (Get-Date).ToString('HH:mm:ss')
+        $svcItem.Notes = 'Completed'
+        $script:TimelineItems[$serviceIdx] = $svcItem
+        $script:TimelineCurrentIndex = $serviceIdx
+        $tbTimelineCurrent.Text = 'Current: START SERVICE'
         $tbTimelineNext.Text = 'Next: Completed'
+        $tbTimelineEta.Text = 'ETA: 0s'
+        return
     }
-
-    $remainingSteps = [Math]::Max(0, $script:TimelineStepOrder.Count - $idx - 1)
-    $tbTimelineEta.Text = "ETA: ~$($remainingSteps * 45)s"
 }
 
 function Finalize-Timeline {
+    if ($script:TimelineCurrentIndex -lt 0 -and $script:TimelineItems.Count -eq 1) {
+        $single = $script:TimelineItems[0]
+        if ($single.State -eq 'Pending') {
+            $single.State = 'Done'
+            $single.Started = (Get-Date).ToString('HH:mm:ss')
+            $single.Finished = (Get-Date).ToString('HH:mm:ss')
+            $single.Notes = 'Completed'
+            $script:TimelineItems[0] = $single
+            $script:TimelineCurrentIndex = 0
+        }
+    }
+
     if ($script:TimelineCurrentIndex -ge 0 -and $script:TimelineCurrentIndex -lt $script:TimelineItems.Count) {
         $last = $script:TimelineItems[$script:TimelineCurrentIndex]
         if ($last.State -eq 'In Progress') {
@@ -1208,6 +1279,7 @@ function Export-SignedOperationReport {
     $reportFile = Join-Path $reportsDir ("NCS_OperationReport_{0}.json" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
     $report | ConvertTo-Json -Depth 10 | Set-Content -Path $reportFile -Encoding UTF8
     Add-LogEntry "Signed operation report exported: $reportFile" 'OK'
+    return $reportFile
 }
 #endregion
 
@@ -1723,9 +1795,17 @@ $sbStartService = {
     Write-BgLog '=== START SERVICE ===' 'HEADER'
     $svc = Get-Service $serviceName -ErrorAction SilentlyContinue
     if (-not $svc) { throw "Service '$serviceName' not found on this machine." }
-    Start-Service $serviceName
-    Start-Sleep 3
-    $svc.Refresh()
+    if ($svc.Status -ne 'Running') {
+        Start-Service $serviceName
+    }
+
+    $deadline = (Get-Date).AddMinutes(4)
+    do {
+        Start-Sleep -Seconds 2
+        $svc.Refresh()
+        if ($svc.Status -eq 'Running') { break }
+    } while ((Get-Date) -lt $deadline)
+
     Write-BgLog "Service status: $($svc.Status)" $(if ($svc.Status -eq 'Running') { 'OK' } else { 'WARN' })
 }
 
@@ -2110,7 +2190,17 @@ $btnRefreshStatus.Add_Click({ Update-ServiceStatus })
 $btnGeneratePlan.Add_Click({ Build-ExecutionPlan })
 $btnRunPreflight.Add_Click({ Run-PreflightChecks })
 $btnRunValidation.Add_Click({ Run-PostInstallValidation })
-$btnExportSignedReport.Add_Click({ Export-SignedOperationReport })
+$btnExportSignedReport.Add_Click({
+    try {
+        $reportPath = Export-SignedOperationReport
+        Set-Status 'Signed operation report exported.' 100
+        [System.Windows.MessageBox]::Show("Signed operation report created:`n$reportPath", 'Export Signed Report', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information) | Out-Null
+    } catch {
+        Add-LogEntry "Signed report export failed: $_" 'ERROR'
+        Set-Status 'Signed report export failed.' 0
+        [System.Windows.MessageBox]::Show("Signed report export failed.`n$_", 'Export Signed Report', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error) | Out-Null
+    }
+})
 
 $btnClearLog.Add_Click({
     $rtbLog.Document.Blocks.Clear()
