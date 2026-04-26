@@ -444,7 +444,7 @@ $script:AppVersion = '1.4'
                                 <TextBox x:Name="tbHttpSqlServer" FontSize="11" Text="localhost"/>
                                 <TextBlock x:Name="tbHttpErrSqlServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
                                 <Label Content="SQL Initial Catalog pattern:"/>
-                                <TextBox x:Name="tbHttpSqlCatalog" FontSize="11" Text="{}{0}_{1}"/>
+                                <TextBox x:Name="tbHttpSqlCatalog" FontSize="11" Text=""/>
                                 <TextBlock x:Name="tbHttpErrSqlCatalog" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
 
                                 <Label Content="SQL User (required when integrated security is off):"/>
@@ -857,6 +857,10 @@ $script:HttpConfigErrorTargets = @{
     recordingUser = $tbHttpErrRecordingUser
     recordingPassword = $tbHttpErrRecordingPassword
     recordingFolder = $tbHttpErrRecordingFolder
+}
+
+if ([string]::IsNullOrWhiteSpace($tbHttpSqlCatalog.Text)) {
+    $tbHttpSqlCatalog.Text = '{0}_{1}'
 }
 #endregion
 
