@@ -22,7 +22,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-$script:AppVersion = '1.3'
+$script:AppVersion = '1.4'
 
 #region --- XAML ---
 [xml]$xaml = @'
@@ -430,6 +430,80 @@ $script:AppVersion = '1.3'
                             </StackPanel>
                         </GroupBox>
 
+                        <GroupBox Header="  HTTP.Config Wizard (Install Only)  ">
+                            <StackPanel>
+                                <TextBlock Foreground="#7f93a7" FontSize="10" TextWrapping="Wrap" Margin="2,0,0,6"
+                                           Text="Configure critical http.config values before deploy. This applies only during Fresh Install."/>
+
+                                <Label Content="Domain host list (semicolon separated):"/>
+                                <TextBox x:Name="tbHttpHostList" FontSize="11" Text="localhost:8088;localhost"/>
+                                <TextBlock x:Name="tbHttpErrHost" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <CheckBox x:Name="cbHttpSqlIntegrated" Content="Use SQL Integrated Security" IsChecked="True" Margin="0,2,0,0"/>
+                                <Label Content="SQL Server / Data Source:"/>
+                                <TextBox x:Name="tbHttpSqlServer" FontSize="11" Text="localhost"/>
+                                <TextBlock x:Name="tbHttpErrSqlServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                <Label Content="SQL Initial Catalog pattern:"/>
+                                <TextBox x:Name="tbHttpSqlCatalog" FontSize="11" Text="{0}_{1}"/>
+                                <TextBlock x:Name="tbHttpErrSqlCatalog" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <Label Content="SQL User (required when integrated security is off):"/>
+                                <TextBox x:Name="tbHttpSqlUser" FontSize="11" Text=""/>
+                                <TextBlock x:Name="tbHttpErrSqlUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                <Label Content="SQL Password:"/>
+                                <PasswordBox x:Name="pbHttpSqlPassword" FontSize="11"/>
+                                <TextBlock x:Name="tbHttpErrSqlPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <Label Content="Admin credential user (NixxisAdminRole):"/>
+                                <TextBox x:Name="tbHttpAdminUser" FontSize="11" Text="DefaultAdmin"/>
+                                <TextBlock x:Name="tbHttpErrAdminUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                <Label Content="Admin credential password:"/>
+                                <PasswordBox x:Name="pbHttpAdminPassword" FontSize="11"/>
+                                <TextBlock x:Name="tbHttpErrAdminPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <Label Content="Reporting credential (domain\user):"/>
+                                <TextBox x:Name="tbHttpReportingUser" FontSize="11" Text=""/>
+                                <TextBlock x:Name="tbHttpErrReportingUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                <Label Content="Reporting credential password:"/>
+                                <PasswordBox x:Name="pbHttpReportingPassword" FontSize="11"/>
+                                <TextBlock x:Name="tbHttpErrReportingPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <Label Content="Report Server URL:"/>
+                                <TextBox x:Name="tbHttpReportServerUrl" FontSize="11" Text="http://localhost/ReportServer"/>
+                                <TextBlock x:Name="tbHttpErrReportServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <CheckBox x:Name="cbHttpAddAgentReactivation" Content="Add key in ACD: agentReactivationEnabled" IsChecked="True"/>
+                                <CheckBox x:Name="cbHttpAgentReactivationValue" Content="agentReactivationEnabled value = true (unchecked = false)" IsChecked="False" Margin="14,0,0,4"/>
+
+                                <CheckBox x:Name="cbHttpAddClientVirtualizationFilter" Content="Add key in Admin: ClientVirtualizationFilter" IsChecked="True"/>
+                                <Label Content="ClientVirtualizationFilter value:"/>
+                                <TextBox x:Name="tbHttpClientVirtualizationFilter" FontSize="11" Text=".+"/>
+                                <TextBlock x:Name="tbHttpErrClientVirtualizationFilter" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <Label Content="Recording FTP hosts (semicolon separated):"/>
+                                <TextBox x:Name="tbHttpRecordingHosts" FontSize="11" Text=""/>
+                                <TextBlock x:Name="tbHttpErrRecordingHosts" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                <Label Content="Recording FTP user:"/>
+                                <TextBox x:Name="tbHttpRecordingUser" FontSize="11" Text="recording"/>
+                                <TextBlock x:Name="tbHttpErrRecordingUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                <Label Content="Recording FTP password:"/>
+                                <PasswordBox x:Name="pbHttpRecordingPassword" FontSize="11"/>
+                                <TextBlock x:Name="tbHttpErrRecordingPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                <Label Content="Recording folder (example: 509):"/>
+                                <TextBox x:Name="tbHttpRecordingFolder" FontSize="11" Text=""/>
+                                <TextBlock x:Name="tbHttpErrRecordingFolder" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                <CheckBox x:Name="cbHttpAddSupervision" Content="Add application supervision" IsChecked="False" Margin="0,0,0,6"/>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="btnHttpValidate" Content="Validate Config Inputs" Style="{StaticResource ActionBtn}" Width="145" Margin="0,0,6,0"/>
+                                    <Button x:Name="btnHttpPreview" Content="Preview XML Changes" Style="{StaticResource ActionBtn}" Width="130" Margin="0,0,6,0"/>
+                                    <Button x:Name="btnHttpSaveProfile" Content="Save Install Profile" Style="{StaticResource ActionBtn}" Width="130"/>
+                                </StackPanel>
+                                <TextBlock x:Name="tbHttpConfigSummary" Foreground="#b6c7d8" FontSize="10" Margin="2,5,0,0" Text="No validation run yet."/>
+                            </StackPanel>
+                        </GroupBox>
+
                         <!-- Fresh Install Steps -->
                         <GroupBox Header="  Fresh Install NCS  ">
                             <StackPanel>
@@ -710,10 +784,50 @@ $tbElapsed       = ctrl 'tbElapsed'
 $tbServiceStatus = ctrl 'tbServiceStatus'
 $ellServiceDot   = ctrl 'ellServiceDot'
 $tbLogFile       = ctrl 'tbLogFile'
+$tbHttpHostList = ctrl 'tbHttpHostList'
+$cbHttpSqlIntegrated = ctrl 'cbHttpSqlIntegrated'
+$tbHttpSqlServer = ctrl 'tbHttpSqlServer'
+$tbHttpSqlCatalog = ctrl 'tbHttpSqlCatalog'
+$tbHttpSqlUser = ctrl 'tbHttpSqlUser'
+$pbHttpSqlPassword = ctrl 'pbHttpSqlPassword'
+$tbHttpAdminUser = ctrl 'tbHttpAdminUser'
+$pbHttpAdminPassword = ctrl 'pbHttpAdminPassword'
+$tbHttpReportingUser = ctrl 'tbHttpReportingUser'
+$pbHttpReportingPassword = ctrl 'pbHttpReportingPassword'
+$tbHttpReportServerUrl = ctrl 'tbHttpReportServerUrl'
+$cbHttpAddAgentReactivation = ctrl 'cbHttpAddAgentReactivation'
+$cbHttpAgentReactivationValue = ctrl 'cbHttpAgentReactivationValue'
+$cbHttpAddClientVirtualizationFilter = ctrl 'cbHttpAddClientVirtualizationFilter'
+$tbHttpClientVirtualizationFilter = ctrl 'tbHttpClientVirtualizationFilter'
+$tbHttpRecordingHosts = ctrl 'tbHttpRecordingHosts'
+$tbHttpRecordingUser = ctrl 'tbHttpRecordingUser'
+$pbHttpRecordingPassword = ctrl 'pbHttpRecordingPassword'
+$tbHttpRecordingFolder = ctrl 'tbHttpRecordingFolder'
+$cbHttpAddSupervision = ctrl 'cbHttpAddSupervision'
+$btnHttpValidate = ctrl 'btnHttpValidate'
+$btnHttpPreview = ctrl 'btnHttpPreview'
+$btnHttpSaveProfile = ctrl 'btnHttpSaveProfile'
+$tbHttpConfigSummary = ctrl 'tbHttpConfigSummary'
+$tbHttpErrHost = ctrl 'tbHttpErrHost'
+$tbHttpErrSqlServer = ctrl 'tbHttpErrSqlServer'
+$tbHttpErrSqlCatalog = ctrl 'tbHttpErrSqlCatalog'
+$tbHttpErrSqlUser = ctrl 'tbHttpErrSqlUser'
+$tbHttpErrSqlPassword = ctrl 'tbHttpErrSqlPassword'
+$tbHttpErrAdminUser = ctrl 'tbHttpErrAdminUser'
+$tbHttpErrAdminPassword = ctrl 'tbHttpErrAdminPassword'
+$tbHttpErrReportingUser = ctrl 'tbHttpErrReportingUser'
+$tbHttpErrReportingPassword = ctrl 'tbHttpErrReportingPassword'
+$tbHttpErrReportServer = ctrl 'tbHttpErrReportServer'
+$tbHttpErrClientVirtualizationFilter = ctrl 'tbHttpErrClientVirtualizationFilter'
+$tbHttpErrRecordingHosts = ctrl 'tbHttpErrRecordingHosts'
+$tbHttpErrRecordingUser = ctrl 'tbHttpErrRecordingUser'
+$tbHttpErrRecordingPassword = ctrl 'tbHttpErrRecordingPassword'
+$tbHttpErrRecordingFolder = ctrl 'tbHttpErrRecordingFolder'
 
 $allOpButtons = @(
     $btnRunFull,$btnRunInitialSetup,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService,
-    $btnEnsureDotNet48,$btnInstallService,$btnCopyTools,$btnInstallMoveFiles,$btnCreateReportingUser,$btnConfigFirewall,$btnDeployTranscription,$btnLaunchDeployReports
+    $btnEnsureDotNet48,$btnInstallService,$btnCopyTools,$btnInstallMoveFiles,$btnCreateReportingUser,$btnConfigFirewall,$btnDeployTranscription,$btnLaunchDeployReports,
+    $btnHttpValidate,$btnHttpPreview,$btnHttpSaveProfile
 )
 
 $script:PlanItems = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
@@ -728,6 +842,24 @@ $lvValidation.ItemsSource = $script:ValidationItems
 $script:TimelineStepOrder = @()
 $script:TimelineCurrentIndex = -1
 $script:TimelineStartedAt = $null
+$script:HttpConfigValidationErrors = @{}
+$script:HttpConfigErrorTargets = @{
+    host = $tbHttpErrHost
+    sqlServer = $tbHttpErrSqlServer
+    sqlCatalog = $tbHttpErrSqlCatalog
+    sqlUser = $tbHttpErrSqlUser
+    sqlPassword = $tbHttpErrSqlPassword
+    adminUser = $tbHttpErrAdminUser
+    adminPassword = $tbHttpErrAdminPassword
+    reportingUser = $tbHttpErrReportingUser
+    reportingPassword = $tbHttpErrReportingPassword
+    reportServerUrl = $tbHttpErrReportServer
+    clientVirtualizationFilter = $tbHttpErrClientVirtualizationFilter
+    recordingHosts = $tbHttpErrRecordingHosts
+    recordingUser = $tbHttpErrRecordingUser
+    recordingPassword = $tbHttpErrRecordingPassword
+    recordingFolder = $tbHttpErrRecordingFolder
+}
 #endregion
 
 #region --- Shared State ---
@@ -834,13 +966,16 @@ function Update-OperationModeUI {
         $pnlInstallFlow.Visibility = 'Visible'
         $pnlUpdateFlow.Visibility = 'Collapsed'
         $tbModeHint.Text = 'Mode: Fresh Install NCS. Install workflow controls are visible.'
+        $tbHttpConfigSummary.Text = 'HTTP.Config wizard active for Fresh Install.'
         Add-LogEntry 'Switched to Fresh Install mode.' 'CYAN'
     } else {
         $pnlInstallFlow.Visibility = 'Collapsed'
         $pnlUpdateFlow.Visibility = 'Visible'
         $tbModeHint.Text = 'Mode: Update Existing NCS. Update workflow controls are visible.'
+        $tbHttpConfigSummary.Text = 'HTTP.Config wizard is ignored in Update mode.'
         Add-LogEntry 'Switched to Update Existing mode.' 'CYAN'
     }
+    Update-HttpConfigUiState
 }
 
 function Get-DiscoveredWebFolders {
@@ -890,6 +1025,245 @@ function Update-SourceModeUI {
     }
 }
 
+function Get-HttpConfigUiSettings {
+    return [ordered]@{
+        hostList = $tbHttpHostList.Text.Trim()
+        sqlIntegrated = [bool]$cbHttpSqlIntegrated.IsChecked
+        sqlServer = $tbHttpSqlServer.Text.Trim()
+        sqlCatalog = $tbHttpSqlCatalog.Text.Trim()
+        sqlUser = $tbHttpSqlUser.Text.Trim()
+        sqlPassword = $pbHttpSqlPassword.Password
+        adminUser = $tbHttpAdminUser.Text.Trim()
+        adminPassword = $pbHttpAdminPassword.Password
+        reportingUser = $tbHttpReportingUser.Text.Trim()
+        reportingPassword = $pbHttpReportingPassword.Password
+        reportServerUrl = $tbHttpReportServerUrl.Text.Trim()
+        addAgentReactivation = [bool]$cbHttpAddAgentReactivation.IsChecked
+        agentReactivationValue = [bool]$cbHttpAgentReactivationValue.IsChecked
+        addClientVirtualizationFilter = [bool]$cbHttpAddClientVirtualizationFilter.IsChecked
+        clientVirtualizationFilter = $tbHttpClientVirtualizationFilter.Text.Trim()
+        recordingHosts = $tbHttpRecordingHosts.Text.Trim()
+        recordingUser = $tbHttpRecordingUser.Text.Trim()
+        recordingPassword = $pbHttpRecordingPassword.Password
+        recordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim('/','\\')
+        addSupervision = [bool]$cbHttpAddSupervision.IsChecked
+    }
+}
+
+function Clear-HttpConfigFieldErrors {
+    foreach ($target in $script:HttpConfigErrorTargets.Values) {
+        $target.Text = ''
+    }
+    $script:HttpConfigValidationErrors = @{}
+}
+
+function Set-HttpConfigFieldError {
+    param([string]$Field, [string]$Message)
+
+    if (-not $script:HttpConfigValidationErrors.ContainsKey($Field)) {
+        $script:HttpConfigValidationErrors[$Field] = @()
+    }
+    $script:HttpConfigValidationErrors[$Field] += $Message
+}
+
+function Show-HttpConfigFieldErrors {
+    foreach ($key in $script:HttpConfigErrorTargets.Keys) {
+        $messages = @()
+        if ($script:HttpConfigValidationErrors.ContainsKey($key)) {
+            $messages = $script:HttpConfigValidationErrors[$key]
+        }
+        $script:HttpConfigErrorTargets[$key].Text = ($messages -join ' ')
+    }
+}
+
+function Build-RecordingUrlList {
+    param($Settings)
+
+    $hosts = @()
+    if (-not [string]::IsNullOrWhiteSpace($Settings.recordingHosts)) {
+        $hosts = @($Settings.recordingHosts -split ';' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    }
+    if ($hosts.Count -eq 0) { return '' }
+
+    $folder = $Settings.recordingFolder.Trim('/','\\')
+    $urls = @()
+    foreach ($h in $hosts) {
+        $urls += ('ftp://{0}:{1}@{2}/{3}/' -f $Settings.recordingUser, $Settings.recordingPassword, $h, $folder)
+    }
+    return ($urls -join ';')
+}
+
+function Validate-HttpConfigSettings {
+    param([bool]$ShowInlineErrors = $true)
+
+    $settings = Get-HttpConfigUiSettings
+    Clear-HttpConfigFieldErrors
+
+    if ([string]::IsNullOrWhiteSpace($settings.hostList)) {
+        Set-HttpConfigFieldError 'host' 'Domain host list is required.'
+    }
+
+    if ([string]::IsNullOrWhiteSpace($settings.sqlServer)) {
+        Set-HttpConfigFieldError 'sqlServer' 'SQL server/data source is required.'
+    }
+    if ([string]::IsNullOrWhiteSpace($settings.sqlCatalog)) {
+        Set-HttpConfigFieldError 'sqlCatalog' 'SQL initial catalog pattern is required.'
+    }
+    if (-not $settings.sqlIntegrated) {
+        if ([string]::IsNullOrWhiteSpace($settings.sqlUser)) {
+            Set-HttpConfigFieldError 'sqlUser' 'SQL user is required when integrated security is off.'
+        }
+        if ([string]::IsNullOrWhiteSpace($settings.sqlPassword)) {
+            Set-HttpConfigFieldError 'sqlPassword' 'SQL password is required when integrated security is off.'
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($settings.adminUser)) {
+        Set-HttpConfigFieldError 'adminUser' 'Admin credential user is required.'
+    }
+    if ([string]::IsNullOrWhiteSpace($settings.adminPassword)) {
+        Set-HttpConfigFieldError 'adminPassword' 'Admin credential password is required.'
+    }
+
+    if ([string]::IsNullOrWhiteSpace($settings.reportingUser)) {
+        Set-HttpConfigFieldError 'reportingUser' 'Reporting credential is required.'
+    }
+    if ([string]::IsNullOrWhiteSpace($settings.reportingPassword)) {
+        Set-HttpConfigFieldError 'reportingPassword' 'Reporting password is required.'
+    }
+
+    $uriOk = $false
+    if (-not [string]::IsNullOrWhiteSpace($settings.reportServerUrl)) {
+        $uriRef = $null
+        $uriOk = [Uri]::TryCreate($settings.reportServerUrl, [System.UriKind]::Absolute, [ref]$uriRef)
+        if ($uriOk) {
+            $uriOk = ($uriRef.Scheme -eq 'http' -or $uriRef.Scheme -eq 'https')
+        }
+    }
+    if (-not $uriOk) {
+        Set-HttpConfigFieldError 'reportServerUrl' 'Report server URL must be absolute http/https.'
+    }
+
+    if ($settings.addClientVirtualizationFilter -and [string]::IsNullOrWhiteSpace($settings.clientVirtualizationFilter)) {
+        Set-HttpConfigFieldError 'clientVirtualizationFilter' 'ClientVirtualizationFilter value is required when enabled.'
+    }
+
+    $recordingHosts = @($settings.recordingHosts -split ';' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $recordingAny = ($recordingHosts.Count -gt 0) -or -not [string]::IsNullOrWhiteSpace($settings.recordingUser) -or -not [string]::IsNullOrWhiteSpace($settings.recordingPassword) -or -not [string]::IsNullOrWhiteSpace($settings.recordingFolder)
+    if ($recordingAny) {
+        if ($recordingHosts.Count -eq 0) { Set-HttpConfigFieldError 'recordingHosts' 'Recording hosts are required for recording configuration.' }
+        if ([string]::IsNullOrWhiteSpace($settings.recordingUser)) { Set-HttpConfigFieldError 'recordingUser' 'Recording user is required.' }
+        if ([string]::IsNullOrWhiteSpace($settings.recordingPassword)) { Set-HttpConfigFieldError 'recordingPassword' 'Recording password is required.' }
+        if ([string]::IsNullOrWhiteSpace($settings.recordingFolder)) { Set-HttpConfigFieldError 'recordingFolder' 'Recording folder is required.' }
+    }
+
+    if ($ShowInlineErrors) {
+        Show-HttpConfigFieldErrors
+    }
+
+    $errorCount = ($script:HttpConfigValidationErrors.Keys | Measure-Object).Count
+    if ($errorCount -eq 0) {
+        $tbHttpConfigSummary.Text = 'HTTP.Config wizard validation: OK.'
+    } else {
+        $tbHttpConfigSummary.Text = "HTTP.Config wizard validation: $errorCount field(s) require attention."
+    }
+
+    return [pscustomobject]@{
+        IsValid = ($errorCount -eq 0)
+        Errors = $script:HttpConfigValidationErrors
+        Settings = $settings
+    }
+}
+
+function New-HttpConfigPreviewText {
+    $result = Validate-HttpConfigSettings -ShowInlineErrors $true
+    $s = $result.Settings
+    $recordingValue = Build-RecordingUrlList -Settings $s
+    $connectionString = if ($s.sqlIntegrated) {
+        "Integrated Security=Yes;Data Source=$($s.sqlServer);Initial Catalog=$($s.sqlCatalog)"
+    } else {
+        "Integrated Security=No;User ID=$($s.sqlUser);Password=$($s.sqlPassword);Data Source=$($s.sqlServer);Initial Catalog=$($s.sqlCatalog)"
+    }
+
+    $lines = @()
+    $lines += '<domain host="' + $s.hostList + '" connectionString="' + $connectionString + '">'
+    $lines += '  <credentials>'
+    $lines += '    <add key="admin" credential="' + $s.adminUser + ':********" roles="NixxisAdminRole"/>'
+    $lines += '    <add credential="' + $s.reportingUser + ':********" roles="NixxisReportingRole"/>'
+    $lines += '  </credentials>'
+    $lines += '  <application id="admin">'
+    $lines += '    <add key="reportServerUrl" value="' + $s.reportServerUrl + '"/>'
+    if ($s.addClientVirtualizationFilter) {
+        $lines += '    <add key="ClientVirtualizationFilter" value="' + $s.clientVirtualizationFilter + '"/>'
+    }
+    $lines += '  </application>'
+    if ($s.addAgentReactivation) {
+        $lines += '  <application id="acd">'
+        $lines += '    <add key="agentReactivationEnabled" value="' + ($s.agentReactivationValue.ToString().ToLowerInvariant()) + '"/>'
+        $lines += '  </application>'
+    }
+    if (-not [string]::IsNullOrWhiteSpace($recordingValue)) {
+        $lines += '  <application id="relay">'
+        $lines += '    <add key="recording" value="' + ($recordingValue -replace [regex]::Escape($s.recordingPassword), '********') + '"/>'
+        $lines += '  </application>'
+    }
+    if ($s.addSupervision) {
+        $lines += '  <application id="supervision" name="supervision" type="SupervisionApp" preload="true" debug="false">'
+        $lines += '  </application>'
+    }
+    $lines += '</domain>'
+
+    return ($lines -join [Environment]::NewLine)
+}
+
+function Show-HttpConfigPreview {
+    $previewText = New-HttpConfigPreviewText
+    $form = [System.Windows.Forms.Form]::new()
+    $form.Text = 'HTTP.Config Preview (Install)'
+    $form.Width = 960
+    $form.Height = 620
+    $form.StartPosition = 'CenterParent'
+
+    $tb = [System.Windows.Forms.TextBox]::new()
+    $tb.Multiline = $true
+    $tb.ReadOnly = $true
+    $tb.ScrollBars = 'Both'
+    $tb.WordWrap = $false
+    $tb.Dock = 'Fill'
+    $tb.Font = [System.Drawing.Font]::new('Consolas', 10)
+    $tb.Text = $previewText
+    $form.Controls.Add($tb)
+    $form.ShowDialog() | Out-Null
+}
+
+function Save-HttpConfigInstallProfile {
+    $result = Validate-HttpConfigSettings -ShowInlineErrors $true
+    $settings = $result.Settings
+
+    $dlg = [Microsoft.Win32.SaveFileDialog]::new()
+    $dlg.Title = 'Save HTTP.Config Install Profile'
+    $dlg.Filter = 'Encrypted Profile (*.ncsprofile)|*.ncsprofile|All Files (*.*)|*.*'
+    $dlg.FileName = "HttpConfigProfile_$(Get-Date -Format 'yyyyMMdd_HHmmss').ncsprofile"
+    if ($dlg.ShowDialog() -ne $true) { return }
+
+    $json = ($settings | ConvertTo-Json -Depth 5 -Compress)
+    $plainBytes = [System.Text.Encoding]::UTF8.GetBytes($json)
+    $entropy = [System.Text.Encoding]::UTF8.GetBytes('NCS-HttpConfig-Profile-v1')
+    $protected = [System.Security.Cryptography.ProtectedData]::Protect($plainBytes, $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser)
+    [System.IO.File]::WriteAllText($dlg.FileName, [Convert]::ToBase64String($protected), [System.Text.Encoding]::UTF8)
+    Add-LogEntry "Saved encrypted HTTP.Config install profile: $($dlg.FileName)" 'OK'
+    $tbHttpConfigSummary.Text = 'HTTP.Config install profile saved.'
+}
+
+function Update-HttpConfigUiState {
+    $sqlCredEnabled = -not [bool]$cbHttpSqlIntegrated.IsChecked
+    $tbHttpSqlUser.IsEnabled = $sqlCredEnabled
+    $pbHttpSqlPassword.IsEnabled = $sqlCredEnabled
+
+    $tbHttpClientVirtualizationFilter.IsEnabled = [bool]$cbHttpAddClientVirtualizationFilter.IsChecked
+    $cbHttpAgentReactivationValue.IsEnabled = [bool]$cbHttpAddAgentReactivation.IsChecked
+}
+
 function Add-PlanItem {
     param([string]$Badge, [string]$Action, [string]$Path, [string]$Details)
     $script:PlanItems.Add([pscustomobject]@{
@@ -926,6 +1300,10 @@ function Build-ExecutionPlan {
     }
 
     Add-PlanItem 'OVERWRITE' 'Extract staging files' (Join-Path $runDir 'NixxisApplicationServer') 'NCS, ClientSoftware, provisioning payloads'
+
+    if ($rbModeInstall.IsChecked) {
+        Add-PlanItem 'CHECK' 'Apply HTTP.Config wizard' (Join-Path $runDir 'NixxisApplicationServer\SampleConfigFiles') 'Updates staged http.config sample values before deploy'
+    }
 
     if ($rbModeUpdate.IsChecked) {
         Add-PlanItem 'OVERWRITE' 'Stop service and backup existing' $installPath "Service: $serviceName"
@@ -1045,7 +1423,7 @@ function Initialize-Timeline {
     $script:TimelineStartedAt = Get-Date
 
     if ($JobName -eq 'Initial Setup') {
-        $script:TimelineStepOrder = @('DOWNLOAD PHASE','PREPARE / EXTRACT PHASE','STOP SERVICE PHASE','BACKUP PHASE','CLEANUP PHASE','DEPLOY PHASE','SERVICE INSTALLATION PHASE','TOOLS COPY PHASE','MOVEFILES INSTALL PHASE','REPORTING USER PHASE','FIREWALL PHASE','TRANSCRIPTION HELPERS PHASE')
+        $script:TimelineStepOrder = @('DOWNLOAD PHASE','PREPARE / EXTRACT PHASE','STOP SERVICE PHASE','BACKUP PHASE','CLEANUP PHASE','HTTP.CONFIG CONFIGURATION PHASE','DEPLOY PHASE','SERVICE INSTALLATION PHASE','TOOLS COPY PHASE','MOVEFILES INSTALL PHASE','REPORTING USER PHASE','FIREWALL PHASE','TRANSCRIPTION HELPERS PHASE')
     } elseif ($JobName -eq 'Full Update') {
         $script:TimelineStepOrder = @('DOWNLOAD PHASE','PREPARE / EXTRACT PHASE','STOP SERVICE PHASE','BACKUP PHASE','CLEANUP PHASE','DEPLOY PHASE')
     } else {
@@ -1319,6 +1697,26 @@ function Start-NixxisJob {
     $selectedServerVersion = if ($cbServerVersion.SelectedItem) { [string]$cbServerVersion.SelectedItem } else { '' }
     $selectedBaseVersion = if ($sync.SelectedBaseVersion) { [string]$sync.SelectedBaseVersion } else { '' }
     $operationMode = if ($rbModeInstall.IsChecked) { 'install' } else { 'update' }
+    $httpConfigHostList = $tbHttpHostList.Text.Trim()
+    $httpConfigSqlIntegrated = [bool]$cbHttpSqlIntegrated.IsChecked
+    $httpConfigSqlServer = $tbHttpSqlServer.Text.Trim()
+    $httpConfigSqlCatalog = $tbHttpSqlCatalog.Text.Trim()
+    $httpConfigSqlUser = $tbHttpSqlUser.Text.Trim()
+    $httpConfigSqlPassword = $pbHttpSqlPassword.Password
+    $httpConfigAdminUser = $tbHttpAdminUser.Text.Trim()
+    $httpConfigAdminPassword = $pbHttpAdminPassword.Password
+    $httpConfigReportingUser = $tbHttpReportingUser.Text.Trim()
+    $httpConfigReportingPassword = $pbHttpReportingPassword.Password
+    $httpConfigReportServerUrl = $tbHttpReportServerUrl.Text.Trim()
+    $httpConfigAddAgentReactivation = [bool]$cbHttpAddAgentReactivation.IsChecked
+    $httpConfigAgentReactivationValue = [bool]$cbHttpAgentReactivationValue.IsChecked
+    $httpConfigAddClientVirtualizationFilter = [bool]$cbHttpAddClientVirtualizationFilter.IsChecked
+    $httpConfigClientVirtualizationFilter = $tbHttpClientVirtualizationFilter.Text.Trim()
+    $httpConfigRecordingHosts = $tbHttpRecordingHosts.Text.Trim()
+    $httpConfigRecordingUser = $tbHttpRecordingUser.Text.Trim()
+    $httpConfigRecordingPassword = $pbHttpRecordingPassword.Password
+    $httpConfigRecordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim('/','\\')
+    $httpConfigAddSupervision = [bool]$cbHttpAddSupervision.IsChecked
     $optEnsureDotNet48 = [bool]$cbEnsureDotNet48.IsChecked
     $optInstallMoveFiles = [bool]$cbInstallMoveFiles.IsChecked
     $optCreateReportingUser = [bool]$cbCreateReportingUser.IsChecked
@@ -1347,6 +1745,26 @@ function Start-NixxisJob {
     $rs.SessionStateProxy.SetVariable('selectedServerVersion', $selectedServerVersion)
     $rs.SessionStateProxy.SetVariable('selectedBaseVersion', $selectedBaseVersion)
     $rs.SessionStateProxy.SetVariable('operationMode', $operationMode)
+    $rs.SessionStateProxy.SetVariable('httpConfigHostList', $httpConfigHostList)
+    $rs.SessionStateProxy.SetVariable('httpConfigSqlIntegrated', $httpConfigSqlIntegrated)
+    $rs.SessionStateProxy.SetVariable('httpConfigSqlServer', $httpConfigSqlServer)
+    $rs.SessionStateProxy.SetVariable('httpConfigSqlCatalog', $httpConfigSqlCatalog)
+    $rs.SessionStateProxy.SetVariable('httpConfigSqlUser', $httpConfigSqlUser)
+    $rs.SessionStateProxy.SetVariable('httpConfigSqlPassword', $httpConfigSqlPassword)
+    $rs.SessionStateProxy.SetVariable('httpConfigAdminUser', $httpConfigAdminUser)
+    $rs.SessionStateProxy.SetVariable('httpConfigAdminPassword', $httpConfigAdminPassword)
+    $rs.SessionStateProxy.SetVariable('httpConfigReportingUser', $httpConfigReportingUser)
+    $rs.SessionStateProxy.SetVariable('httpConfigReportingPassword', $httpConfigReportingPassword)
+    $rs.SessionStateProxy.SetVariable('httpConfigReportServerUrl', $httpConfigReportServerUrl)
+    $rs.SessionStateProxy.SetVariable('httpConfigAddAgentReactivation', $httpConfigAddAgentReactivation)
+    $rs.SessionStateProxy.SetVariable('httpConfigAgentReactivationValue', $httpConfigAgentReactivationValue)
+    $rs.SessionStateProxy.SetVariable('httpConfigAddClientVirtualizationFilter', $httpConfigAddClientVirtualizationFilter)
+    $rs.SessionStateProxy.SetVariable('httpConfigClientVirtualizationFilter', $httpConfigClientVirtualizationFilter)
+    $rs.SessionStateProxy.SetVariable('httpConfigRecordingHosts', $httpConfigRecordingHosts)
+    $rs.SessionStateProxy.SetVariable('httpConfigRecordingUser', $httpConfigRecordingUser)
+    $rs.SessionStateProxy.SetVariable('httpConfigRecordingPassword', $httpConfigRecordingPassword)
+    $rs.SessionStateProxy.SetVariable('httpConfigRecordingFolder', $httpConfigRecordingFolder)
+    $rs.SessionStateProxy.SetVariable('httpConfigAddSupervision', $httpConfigAddSupervision)
     $rs.SessionStateProxy.SetVariable('optEnsureDotNet48', $optEnsureDotNet48)
     $rs.SessionStateProxy.SetVariable('optInstallMoveFiles', $optInstallMoveFiles)
     $rs.SessionStateProxy.SetVariable('optCreateReportingUser', $optCreateReportingUser)
@@ -1727,6 +2145,194 @@ $sbCleanup = {
     Write-BgLog 'Cleanup phase complete.' 'OK'
 }
 
+$sbConfigureHttpConfig = {
+    Write-BgLog '=== HTTP.CONFIG CONFIGURATION PHASE ===' 'HEADER'
+
+    if ($operationMode -ne 'install') {
+        Write-BgLog 'Update mode detected - skipped HTTP.Config wizard apply.' 'GRAY'
+        return
+    }
+
+    try {
+        $appServer = Join-Path $runDir 'NixxisApplicationServer'
+        $sampleRoot = Join-Path $appServer 'SampleConfigFiles'
+        if (-not (Test-Path $sampleRoot)) {
+            Write-BgLog "SampleConfigFiles folder not found: $sampleRoot" 'WARN'
+            return
+        }
+
+        $candidates = @(Get-ChildItem -Path $sampleRoot -File -Recurse | Where-Object {
+            $_.Name -ieq 'http.config.sample' -or $_.Name -ieq 'http.config'
+        })
+        if ($candidates.Count -eq 0) {
+            Write-BgLog 'No http.config sample file found in SampleConfigFiles - skipping.' 'WARN'
+            return
+        }
+
+        $target = $null
+        $sampleExact = $candidates | Where-Object { $_.Name -ieq 'http.config.sample' } | Select-Object -First 1
+        if ($sampleExact) { $target = $sampleExact } else { $target = $candidates[0] }
+        Write-BgLog "Applying HTTP.Config wizard values to: $($target.FullName)" 'CYAN'
+
+        [xml]$doc = Get-Content -Path $target.FullName -Raw
+        $httpNode = $doc.SelectSingleNode('/http')
+        if (-not $httpNode) {
+            throw 'Invalid http.config: /http node not found.'
+        }
+        $domain = $doc.SelectSingleNode('/http/domain')
+        if (-not $domain) {
+            $domain = $doc.CreateElement('domain')
+            $domain.SetAttribute('id', 'Default')
+            $domain.SetAttribute('domainType', 'http')
+            $domain.SetAttribute('type', 'HttpProcessor')
+            $httpNode.AppendChild($domain) | Out-Null
+        }
+
+        function Set-OrCreateDomainAttribute {
+            param([string]$Name, [string]$Value)
+            if (-not [string]::IsNullOrWhiteSpace($Value)) {
+                $domain.SetAttribute($Name, $Value)
+            }
+        }
+
+        function Ensure-ApplicationNode {
+            param([string]$Id, [string]$Name, [string]$Type)
+
+            $node = $domain.SelectSingleNode("application[@id='$Id']")
+            if (-not $node) {
+                $node = $doc.CreateElement('application')
+                $node.SetAttribute('id', $Id)
+                if ($Name) { $node.SetAttribute('name', $Name) }
+                if ($Type) { $node.SetAttribute('type', $Type) }
+                $domain.AppendChild($node) | Out-Null
+            }
+            return $node
+        }
+
+        function Set-ApplicationKey {
+            param([System.Xml.XmlElement]$AppNode, [string]$Key, [string]$Value)
+
+            if (-not $AppNode -or [string]::IsNullOrWhiteSpace($Key) -or $null -eq $Value) { return }
+            $entry = $AppNode.SelectSingleNode("add[@key='$Key']")
+            if (-not $entry) {
+                $entry = $doc.CreateElement('add')
+                $entry.SetAttribute('key', $Key)
+                $AppNode.AppendChild($entry) | Out-Null
+            }
+            $entry.SetAttribute('value', $Value)
+        }
+
+        $hostValue = $httpConfigHostList
+        if (-not [string]::IsNullOrWhiteSpace($hostValue)) {
+            Set-OrCreateDomainAttribute -Name 'host' -Value $hostValue
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($httpConfigSqlServer) -and -not [string]::IsNullOrWhiteSpace($httpConfigSqlCatalog)) {
+            $connectionString = if ($httpConfigSqlIntegrated) {
+                "Integrated Security=Yes;Data Source=$httpConfigSqlServer;Initial Catalog=$httpConfigSqlCatalog"
+            } else {
+                "Integrated Security=No;User ID=$httpConfigSqlUser;Password=$httpConfigSqlPassword;Data Source=$httpConfigSqlServer;Initial Catalog=$httpConfigSqlCatalog"
+            }
+            Set-OrCreateDomainAttribute -Name 'connectionString' -Value $connectionString
+        } else {
+            Write-BgLog 'HTTP.Config: SQL server/catalog not fully provided - connectionString left unchanged.' 'WARN'
+        }
+
+        $credentialsNode = $domain.SelectSingleNode('credentials')
+        if (-not $credentialsNode) {
+            $credentialsNode = $doc.CreateElement('credentials')
+            $domain.AppendChild($credentialsNode) | Out-Null
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($httpConfigAdminUser) -and -not [string]::IsNullOrWhiteSpace($httpConfigAdminPassword)) {
+            $adminNode = $credentialsNode.SelectSingleNode("add[@key='admin']")
+            if (-not $adminNode) {
+                $adminNode = $doc.CreateElement('add')
+                $adminNode.SetAttribute('key', 'admin')
+                $credentialsNode.AppendChild($adminNode) | Out-Null
+            }
+            $adminNode.SetAttribute('credential', "$httpConfigAdminUser`:$httpConfigAdminPassword")
+            $adminNode.SetAttribute('roles', 'NixxisAdminRole')
+        } else {
+            Write-BgLog 'HTTP.Config: admin credential incomplete - existing admin credential left unchanged.' 'WARN'
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($httpConfigReportingUser) -and -not [string]::IsNullOrWhiteSpace($httpConfigReportingPassword)) {
+            $reportingNode = $credentialsNode.SelectSingleNode("add[@roles='NixxisReportingRole']")
+            if (-not $reportingNode) {
+                $reportingNode = $doc.CreateElement('add')
+                $credentialsNode.AppendChild($reportingNode) | Out-Null
+            }
+            $reportingNode.SetAttribute('credential', "$httpConfigReportingUser`:$httpConfigReportingPassword")
+            $reportingNode.SetAttribute('roles', 'NixxisReportingRole')
+        } else {
+            Write-BgLog 'HTTP.Config: reporting credential incomplete - existing reporting credential left unchanged.' 'WARN'
+        }
+
+        $adminApp = Ensure-ApplicationNode -Id 'admin' -Name 'CrAdmin' -Type 'NixxisAdminApp'
+        if (-not [string]::IsNullOrWhiteSpace($httpConfigReportServerUrl)) {
+            Set-ApplicationKey -AppNode $adminApp -Key 'reportServerUrl' -Value $httpConfigReportServerUrl
+        }
+        if ($httpConfigAddClientVirtualizationFilter -and -not [string]::IsNullOrWhiteSpace($httpConfigClientVirtualizationFilter)) {
+            Set-ApplicationKey -AppNode $adminApp -Key 'ClientVirtualizationFilter' -Value $httpConfigClientVirtualizationFilter
+        }
+
+        if ($httpConfigAddAgentReactivation) {
+            $acdApp = Ensure-ApplicationNode -Id 'acd' -Name 'CrAcd' -Type 'NixxisAcdApp'
+            $agentReactivation = if ($httpConfigAgentReactivationValue) { 'true' } else { 'false' }
+            Set-ApplicationKey -AppNode $acdApp -Key 'agentReactivationEnabled' -Value $agentReactivation
+        }
+
+        $recordingHosts = @($httpConfigRecordingHosts -split ';' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $recordingConfigured = ($recordingHosts.Count -gt 0) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingUser) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingPassword) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingFolder)
+        if ($recordingConfigured) {
+            $relayApp = $domain.SelectSingleNode("application[@id='relay']")
+            if (-not $relayApp) {
+                $relayApp = Ensure-ApplicationNode -Id 'relay' -Name 'relay' -Type 'HttpRelay'
+                $relayApp.SetAttribute('sessionLess', 'true')
+                $relayApp.SetAttribute('serviceId', 'recording')
+                $relayApp.SetAttribute('debug', 'true')
+            }
+            $folder = $httpConfigRecordingFolder.Trim('/','\\')
+            $recUrls = @($recordingHosts | ForEach-Object {
+                ('ftp://{0}:{1}@{2}/{3}/' -f $httpConfigRecordingUser, $httpConfigRecordingPassword, $_, $folder)
+            })
+            Set-ApplicationKey -AppNode $relayApp -Key 'recording' -Value ($recUrls -join ';')
+        } elseif (($recordingHosts.Count -gt 0) -or -not [string]::IsNullOrWhiteSpace($httpConfigRecordingFolder)) {
+            Write-BgLog 'HTTP.Config: recording parameters incomplete - recording key left unchanged.' 'WARN'
+        }
+
+        if ($httpConfigAddSupervision) {
+            $supervisionApp = $domain.SelectSingleNode("application[@id='supervision']")
+            if (-not $supervisionApp) {
+                $supervisionApp = $doc.CreateElement('application')
+                $supervisionApp.SetAttribute('id', 'supervision')
+                $supervisionApp.SetAttribute('name', 'supervision')
+                $supervisionApp.SetAttribute('type', 'SupervisionApp')
+                $supervisionApp.SetAttribute('preload', 'true')
+                $supervisionApp.SetAttribute('debug', 'false')
+                $domain.AppendChild($supervisionApp) | Out-Null
+            }
+        }
+
+        $settings = [System.Xml.XmlWriterSettings]::new()
+        $settings.Indent = $true
+        $settings.Encoding = [System.Text.UTF8Encoding]::new($false)
+        $writer = [System.Xml.XmlWriter]::Create($target.FullName, $settings)
+        try {
+            $doc.Save($writer)
+        }
+        finally {
+            $writer.Dispose()
+        }
+
+        Write-BgLog 'HTTP.Config wizard values applied to staged sample file.' 'OK'
+    } catch {
+        Write-BgLog "HTTP.Config wizard apply failed: $_" 'ERROR'
+        Write-BgLog 'Fresh install will continue with existing staged config values.' 'WARN'
+    }
+}
+
 $sbDeploy = {
     Write-BgLog '=== DEPLOY PHASE ===' 'HEADER'
     $appServer = Join-Path $runDir 'NixxisApplicationServer'
@@ -2032,6 +2638,7 @@ function New-InitialSetupScriptBlock {
         $sbStopService.ToString()
         $sbBackup.ToString()
         $sbCleanup.ToString()
+        $sbConfigureHttpConfig.ToString()
         $sbDeploy.ToString()
         $sbInstallService.ToString()
         $sbCopyTools.ToString()
@@ -2178,6 +2785,29 @@ $tbServiceName.Add_TextChanged({
     Update-ServiceStatus
 })
 
+$btnHttpValidate.Add_Click({
+    $validation = Validate-HttpConfigSettings -ShowInlineErrors $true
+    if ($validation.IsValid) {
+        Add-LogEntry 'HTTP.Config wizard validation completed: no field errors.' 'OK'
+    } else {
+        Add-LogEntry "HTTP.Config wizard validation completed: $($validation.Errors.Count) field(s) need attention." 'WARN'
+    }
+})
+
+$btnHttpPreview.Add_Click({ Show-HttpConfigPreview })
+$btnHttpSaveProfile.Add_Click({ Save-HttpConfigInstallProfile })
+
+foreach ($tb in @($tbHttpHostList,$tbHttpSqlServer,$tbHttpSqlCatalog,$tbHttpSqlUser,$tbHttpAdminUser,$tbHttpReportingUser,$tbHttpReportServerUrl,$tbHttpClientVirtualizationFilter,$tbHttpRecordingHosts,$tbHttpRecordingUser,$tbHttpRecordingFolder)) {
+    $tb.Add_TextChanged({ Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null })
+}
+foreach ($pb in @($pbHttpSqlPassword,$pbHttpAdminPassword,$pbHttpReportingPassword,$pbHttpRecordingPassword)) {
+    $pb.Add_PasswordChanged({ Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null })
+}
+foreach ($cb in @($cbHttpSqlIntegrated,$cbHttpAddAgentReactivation,$cbHttpAgentReactivationValue,$cbHttpAddClientVirtualizationFilter,$cbHttpAddSupervision)) {
+    $cb.Add_Checked({ Update-HttpConfigUiState; Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null })
+    $cb.Add_Unchecked({ Update-HttpConfigUiState; Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null })
+}
+
 # Offline folder picker
 $btnBrowseOffline.Add_Click({
     $dlg = [System.Windows.Forms.FolderBrowserDialog]::new()
@@ -2240,6 +2870,10 @@ $btnOpenReportBin.Add_Click({
 # Operation buttons
 $btnRunInitialSetup.Add_Click({
     if (-not (Ensure-PlanApproved)) { return }
+    $httpValidation = Validate-HttpConfigSettings -ShowInlineErrors $true
+    if (-not $httpValidation.IsValid) {
+        Add-LogEntry "HTTP.Config wizard has $($httpValidation.Errors.Count) field(s) requiring attention. Fresh Install is not blocked; existing or partial values will be used." 'WARN'
+    }
     Add-LogEntry '==== INITIAL SETUP ====' 'HEADER'
     Set-Status 'Running initial setup...' 0
     $initialSetupScript = New-InitialSetupScriptBlock
@@ -2275,6 +2909,8 @@ $tbHeaderSubtitle.Text = "Explicit flows for Fresh Install and Existing Update |
 Update-RunDirLabel
 Update-OperationModeUI
 Update-SourceModeUI
+Update-HttpConfigUiState
+Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null
 Add-LogEntry "NCS Installer / Updater ready (v$script:AppVersion)." 'HEADER'
 Add-LogEntry "User: $env:USERNAME  |  Host: $env:COMPUTERNAME" 'GRAY'
 Add-LogEntry "Log file: $logFile" 'GRAY'
