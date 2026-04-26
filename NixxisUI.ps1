@@ -22,7 +22,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms
 
-$script:AppVersion = '1.4'
+$script:AppVersion = '1.7'
 
 #region --- XAML ---
 [xml]$xaml = @'
@@ -277,6 +277,8 @@ $script:AppVersion = '1.4'
                             <TextBlock x:Name="tbServiceStatus" Text="Service: Unknown" Foreground="#b8c6d3" FontSize="11" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
+                    <Button x:Name="btnForceKillServiceProcess" Content="Force Kill" Style="{StaticResource ActionBtn}" Width="78" Margin="0,0,4,0"/>
+                    <Button x:Name="btnQuickStartService" Content="Start" Style="{StaticResource GreenBtn}" Width="62" Margin="0,0,4,0"/>
                     <Button x:Name="btnRefreshStatus" Content="Refresh" Style="{StaticResource ActionBtn}" Width="74"/>
                 </StackPanel>
             </Grid>
@@ -435,8 +437,21 @@ $script:AppVersion = '1.4'
                                 <TextBlock Foreground="#7f93a7" FontSize="10" TextWrapping="Wrap" Margin="2,0,0,6"
                                            Text="Configure critical http.config values before deploy. This applies only during Fresh Install."/>
 
-                                <Label Content="Domain host list (semicolon separated):"/>
-                                <TextBox x:Name="tbHttpHostList" FontSize="11" Text="localhost:8088;localhost"/>
+                                <Label Content="Domain endpoints:"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="78"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="tbHttpHostName" Grid.Column="0" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                    <TextBox x:Name="tbHttpHostPort" Grid.Column="1" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                    <Button x:Name="btnHttpAddHostEndpoint" Grid.Column="2" Content="Add" Style="{StaticResource ActionBtn}" Width="52" Height="26" Margin="0,0,4,0"/>
+                                    <Button x:Name="btnHttpRemoveHostEndpoint" Grid.Column="3" Content="Remove" Style="{StaticResource ActionBtn}" Width="72" Height="26"/>
+                                </Grid>
+                                <ListBox x:Name="lbHttpHostEndpoints" MinHeight="70" MaxHeight="96" Margin="0,4,0,0" Background="#17202b" Foreground="#dde7ef" BorderBrush="#334354" BorderThickness="1"/>
+                                <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,2,0,0" Text="Add each endpoint separately (example: 172.26.100.133 + 8088, 509.nixxis.cloud + 8088, 509.nixxis.cloud without port)."/>
                                 <TextBlock x:Name="tbHttpErrHost" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
 
                                 <CheckBox x:Name="cbHttpSqlIntegrated" Content="Use SQL Integrated Security" IsChecked="True" Margin="0,2,0,0"/>
@@ -480,8 +495,23 @@ $script:AppVersion = '1.4'
                                 <TextBox x:Name="tbHttpClientVirtualizationFilter" FontSize="11" Text=".+"/>
                                 <TextBlock x:Name="tbHttpErrClientVirtualizationFilter" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
 
-                                <Label Content="Recording FTP hosts (semicolon separated):"/>
-                                <TextBox x:Name="tbHttpRecordingHosts" FontSize="11" Text=""/>
+                                <Label Content="Recording FTP endpoints:"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="78"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox x:Name="tbHttpRecordingHostName" Grid.Column="0" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                    <TextBox x:Name="tbHttpRecordingHostPort" Grid.Column="1" FontSize="11" Text="21" Margin="0,0,4,0"/>
+                                    <TextBox x:Name="tbHttpRecordingEndpointFolder" Grid.Column="2" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                    <Button x:Name="btnHttpAddRecordingEndpoint" Grid.Column="3" Content="Add" Style="{StaticResource ActionBtn}" Width="52" Height="26" Margin="0,0,4,0"/>
+                                    <Button x:Name="btnHttpRemoveRecordingEndpoint" Grid.Column="4" Content="Remove" Style="{StaticResource ActionBtn}" Width="72" Height="26"/>
+                                </Grid>
+                                <ListBox x:Name="lbHttpRecordingEndpoints" MinHeight="70" MaxHeight="96" Margin="0,4,0,0" Background="#17202b" Foreground="#dde7ef" BorderBrush="#334354" BorderThickness="1"/>
+                                <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,2,0,0" Text="Add each FTP endpoint with its folder. Example: host=172.26.100.6, port=21, folder=FOLDER1."/>
                                 <TextBlock x:Name="tbHttpErrRecordingHosts" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
                                 <Label Content="Recording FTP user:"/>
                                 <TextBox x:Name="tbHttpRecordingUser" FontSize="11" Text="recording"/>
@@ -489,9 +519,7 @@ $script:AppVersion = '1.4'
                                 <Label Content="Recording FTP password:"/>
                                 <PasswordBox x:Name="pbHttpRecordingPassword" FontSize="11"/>
                                 <TextBlock x:Name="tbHttpErrRecordingPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <Label Content="Recording folder (example: 509):"/>
-                                <TextBox x:Name="tbHttpRecordingFolder" FontSize="11" Text=""/>
-                                <TextBlock x:Name="tbHttpErrRecordingFolder" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+                                <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,1,0,4" Text="Each endpoint stores its own folder and will be emitted with trailing slash."/>
 
                                 <CheckBox x:Name="cbHttpAddSupervision" Content="Add application supervision" IsChecked="False" Margin="0,0,0,6"/>
 
@@ -753,6 +781,8 @@ $cbInstallMoveFiles = ctrl 'cbInstallMoveFiles'
 $cbCreateReportingUser = ctrl 'cbCreateReportingUser'
 $cbConfigureFirewall = ctrl 'cbConfigureFirewall'
 $cbDeployTranscription = ctrl 'cbDeployTranscription'
+$btnForceKillServiceProcess = ctrl 'btnForceKillServiceProcess'
+$btnQuickStartService = ctrl 'btnQuickStartService'
 $btnRefreshStatus= ctrl 'btnRefreshStatus'
 $btnOpenWork     = ctrl 'btnOpenWork'
 $btnOpenLogs     = ctrl 'btnOpenLogs'
@@ -783,7 +813,11 @@ $tbElapsed       = ctrl 'tbElapsed'
 $tbServiceStatus = ctrl 'tbServiceStatus'
 $ellServiceDot   = ctrl 'ellServiceDot'
 $tbLogFile       = ctrl 'tbLogFile'
-$tbHttpHostList = ctrl 'tbHttpHostList'
+$tbHttpHostName = ctrl 'tbHttpHostName'
+$tbHttpHostPort = ctrl 'tbHttpHostPort'
+$btnHttpAddHostEndpoint = ctrl 'btnHttpAddHostEndpoint'
+$btnHttpRemoveHostEndpoint = ctrl 'btnHttpRemoveHostEndpoint'
+$lbHttpHostEndpoints = ctrl 'lbHttpHostEndpoints'
 $cbHttpSqlIntegrated = ctrl 'cbHttpSqlIntegrated'
 $tbHttpSqlServer = ctrl 'tbHttpSqlServer'
 $tbHttpSqlCatalog = ctrl 'tbHttpSqlCatalog'
@@ -798,10 +832,14 @@ $cbHttpAddAgentReactivation = ctrl 'cbHttpAddAgentReactivation'
 $cbHttpAgentReactivationValue = ctrl 'cbHttpAgentReactivationValue'
 $cbHttpAddClientVirtualizationFilter = ctrl 'cbHttpAddClientVirtualizationFilter'
 $tbHttpClientVirtualizationFilter = ctrl 'tbHttpClientVirtualizationFilter'
-$tbHttpRecordingHosts = ctrl 'tbHttpRecordingHosts'
+$tbHttpRecordingHostName = ctrl 'tbHttpRecordingHostName'
+$tbHttpRecordingHostPort = ctrl 'tbHttpRecordingHostPort'
+$tbHttpRecordingEndpointFolder = ctrl 'tbHttpRecordingEndpointFolder'
+$btnHttpAddRecordingEndpoint = ctrl 'btnHttpAddRecordingEndpoint'
+$btnHttpRemoveRecordingEndpoint = ctrl 'btnHttpRemoveRecordingEndpoint'
+$lbHttpRecordingEndpoints = ctrl 'lbHttpRecordingEndpoints'
 $tbHttpRecordingUser = ctrl 'tbHttpRecordingUser'
 $pbHttpRecordingPassword = ctrl 'pbHttpRecordingPassword'
-$tbHttpRecordingFolder = ctrl 'tbHttpRecordingFolder'
 $cbHttpAddSupervision = ctrl 'cbHttpAddSupervision'
 $btnHttpValidate = ctrl 'btnHttpValidate'
 $btnHttpPreview = ctrl 'btnHttpPreview'
@@ -820,7 +858,6 @@ $tbHttpErrClientVirtualizationFilter = ctrl 'tbHttpErrClientVirtualizationFilter
 $tbHttpErrRecordingHosts = ctrl 'tbHttpErrRecordingHosts'
 $tbHttpErrRecordingUser = ctrl 'tbHttpErrRecordingUser'
 $tbHttpErrRecordingPassword = ctrl 'tbHttpErrRecordingPassword'
-$tbHttpErrRecordingFolder = ctrl 'tbHttpErrRecordingFolder'
 
 $allOpButtons = @(
     $btnRunFull,$btnRunInitialSetup,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService,
@@ -840,6 +877,10 @@ $lvValidation.ItemsSource = $script:ValidationItems
 $script:TimelineStepOrder = @()
 $script:TimelineCurrentIndex = -1
 $script:TimelineStartedAt = $null
+$script:HttpHostEndpoints = [System.Collections.ObjectModel.ObservableCollection[string]]::new()
+$lbHttpHostEndpoints.ItemsSource = $script:HttpHostEndpoints
+$script:HttpRecordingEndpoints = [System.Collections.ObjectModel.ObservableCollection[string]]::new()
+$lbHttpRecordingEndpoints.ItemsSource = $script:HttpRecordingEndpoints
 $script:HttpConfigValidationErrors = @{}
 $script:HttpConfigErrorTargets = @{
     host = $tbHttpErrHost
@@ -856,11 +897,20 @@ $script:HttpConfigErrorTargets = @{
     recordingHosts = $tbHttpErrRecordingHosts
     recordingUser = $tbHttpErrRecordingUser
     recordingPassword = $tbHttpErrRecordingPassword
-    recordingFolder = $tbHttpErrRecordingFolder
 }
 
 if ([string]::IsNullOrWhiteSpace($tbHttpSqlCatalog.Text)) {
     $tbHttpSqlCatalog.Text = '{0}_{1}'
+}
+if ($script:HttpHostEndpoints.Count -eq 0) {
+    $script:HttpHostEndpoints.Add('localhost:8088')
+    $script:HttpHostEndpoints.Add('localhost')
+}
+if ([string]::IsNullOrWhiteSpace($tbHttpHostPort.Text)) {
+    $tbHttpHostPort.Text = '8088'
+}
+if ([string]::IsNullOrWhiteSpace($tbHttpRecordingHostPort.Text)) {
+    $tbHttpRecordingHostPort.Text = '21'
 }
 #endregion
 
@@ -1027,9 +1077,90 @@ function Update-SourceModeUI {
     }
 }
 
+function Get-HttpHostEndpoints {
+    return @($script:HttpHostEndpoints | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+
+function Get-JoinedHttpHostList {
+    $items = Get-HttpHostEndpoints
+    return ($items -join ';')
+}
+
+function Add-HttpHostEndpoint {
+    param([string]$EndpointHost, [string]$EndpointPort)
+
+    $name = $EndpointHost.Trim()
+    $port = $EndpointPort.Trim()
+    if ([string]::IsNullOrWhiteSpace($name)) { return }
+
+    $value = $name
+    if (-not [string]::IsNullOrWhiteSpace($port)) {
+        $portNum = 0
+        if (-not [int]::TryParse($port, [ref]$portNum) -or $portNum -lt 1 -or $portNum -gt 65535) {
+            Set-HttpConfigFieldError 'host' 'Port must be an integer between 1 and 65535.'
+            Show-HttpConfigFieldErrors
+            return
+        }
+        $value = "$name`:$port"
+    }
+
+    if ($script:HttpHostEndpoints -contains $value) { return }
+    $script:HttpHostEndpoints.Add($value)
+}
+
+function Remove-SelectedHttpHostEndpoint {
+    if ($lbHttpHostEndpoints.SelectedItem) {
+        [void]$script:HttpHostEndpoints.Remove([string]$lbHttpHostEndpoints.SelectedItem)
+    }
+}
+
+function Get-HttpRecordingEndpoints {
+    return @($script:HttpRecordingEndpoints | ForEach-Object { [string]$_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+}
+
+function Get-JoinedHttpRecordingHosts {
+    $items = Get-HttpRecordingEndpoints
+    return ($items -join ';')
+}
+
+function Add-HttpRecordingEndpoint {
+    param([string]$EndpointHost, [string]$EndpointPort, [string]$EndpointFolder)
+
+    $name = $EndpointHost.Trim()
+    $port = $EndpointPort.Trim()
+    $folder = $EndpointFolder.Trim().Trim([char[]]@('/','\'))
+    if ([string]::IsNullOrWhiteSpace($name)) { return }
+    if ([string]::IsNullOrWhiteSpace($folder)) {
+        Set-HttpConfigFieldError 'recordingHosts' 'Recording endpoint folder is required.'
+        Show-HttpConfigFieldErrors
+        return
+    }
+
+    $value = $name
+    if (-not [string]::IsNullOrWhiteSpace($port)) {
+        $portNum = 0
+        if (-not [int]::TryParse($port, [ref]$portNum) -or $portNum -lt 1 -or $portNum -gt 65535) {
+            Set-HttpConfigFieldError 'recordingHosts' 'Recording endpoint port must be an integer between 1 and 65535.'
+            Show-HttpConfigFieldErrors
+            return
+        }
+        $value = "$name`:$port"
+    }
+    $value = "$value/$folder"
+
+    if ($script:HttpRecordingEndpoints -contains $value) { return }
+    $script:HttpRecordingEndpoints.Add($value)
+}
+
+function Remove-SelectedHttpRecordingEndpoint {
+    if ($lbHttpRecordingEndpoints.SelectedItem) {
+        [void]$script:HttpRecordingEndpoints.Remove([string]$lbHttpRecordingEndpoints.SelectedItem)
+    }
+}
+
 function Get-HttpConfigUiSettings {
     return [ordered]@{
-        hostList = $tbHttpHostList.Text.Trim()
+        hostList = Get-JoinedHttpHostList
         sqlIntegrated = [bool]$cbHttpSqlIntegrated.IsChecked
         sqlServer = $tbHttpSqlServer.Text.Trim()
         sqlCatalog = $tbHttpSqlCatalog.Text.Trim()
@@ -1044,10 +1175,9 @@ function Get-HttpConfigUiSettings {
         agentReactivationValue = [bool]$cbHttpAgentReactivationValue.IsChecked
         addClientVirtualizationFilter = [bool]$cbHttpAddClientVirtualizationFilter.IsChecked
         clientVirtualizationFilter = $tbHttpClientVirtualizationFilter.Text.Trim()
-        recordingHosts = $tbHttpRecordingHosts.Text.Trim()
+        recordingHosts = Get-JoinedHttpRecordingHosts
         recordingUser = $tbHttpRecordingUser.Text.Trim()
         recordingPassword = $pbHttpRecordingPassword.Password
-        recordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim([char[]]@('/','\'))
         addSupervision = [bool]$cbHttpAddSupervision.IsChecked
     }
 }
@@ -1087,10 +1217,10 @@ function Build-RecordingUrlList {
     }
     if ($hosts.Count -eq 0) { return '' }
 
-    $folder = $Settings.recordingFolder.Trim([char[]]@('/','\'))
     $urls = @()
-    foreach ($h in $hosts) {
-        $urls += ('ftp://{0}:{1}@{2}/{3}/' -f $Settings.recordingUser, $Settings.recordingPassword, $h, $folder)
+    foreach ($endpoint in $hosts) {
+        $normalizedEndpoint = $endpoint.Trim().TrimEnd('/')
+        $urls += ('ftp://{0}:{1}@{2}/' -f $Settings.recordingUser, $Settings.recordingPassword, $normalizedEndpoint)
     }
     return ($urls -join ';')
 }
@@ -1101,8 +1231,22 @@ function Validate-HttpConfigSettings {
     $settings = Get-HttpConfigUiSettings
     Clear-HttpConfigFieldErrors
 
-    if ([string]::IsNullOrWhiteSpace($settings.hostList)) {
-        Set-HttpConfigFieldError 'host' 'Domain host list is required.'
+    $hostEndpoints = Get-HttpHostEndpoints
+    if ($hostEndpoints.Count -eq 0) {
+        Set-HttpConfigFieldError 'host' 'Add at least one domain endpoint.'
+    } else {
+        foreach ($endpoint in $hostEndpoints) {
+            if ($endpoint -match ';|,|\s') {
+                Set-HttpConfigFieldError 'host' "Endpoint '$endpoint' contains invalid characters."
+                continue
+            }
+            if ($endpoint -match ':(\d+)$') {
+                $epPort = [int]$Matches[1]
+                if ($epPort -lt 1 -or $epPort -gt 65535) {
+                    Set-HttpConfigFieldError 'host' "Endpoint '$endpoint' has invalid port."
+                }
+            }
+        }
     }
 
     if ([string]::IsNullOrWhiteSpace($settings.sqlServer)) {
@@ -1151,12 +1295,16 @@ function Validate-HttpConfigSettings {
     }
 
     $recordingHosts = @($settings.recordingHosts -split ';' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-    $recordingAny = ($recordingHosts.Count -gt 0) -or -not [string]::IsNullOrWhiteSpace($settings.recordingUser) -or -not [string]::IsNullOrWhiteSpace($settings.recordingPassword) -or -not [string]::IsNullOrWhiteSpace($settings.recordingFolder)
+    $recordingAny = ($recordingHosts.Count -gt 0) -or -not [string]::IsNullOrWhiteSpace($settings.recordingUser) -or -not [string]::IsNullOrWhiteSpace($settings.recordingPassword)
     if ($recordingAny) {
         if ($recordingHosts.Count -eq 0) { Set-HttpConfigFieldError 'recordingHosts' 'Recording hosts are required for recording configuration.' }
+        foreach ($endpoint in $recordingHosts) {
+            if ($endpoint -notmatch '.+/.+$') {
+                Set-HttpConfigFieldError 'recordingHosts' "Recording endpoint '$endpoint' must include a folder."
+            }
+        }
         if ([string]::IsNullOrWhiteSpace($settings.recordingUser)) { Set-HttpConfigFieldError 'recordingUser' 'Recording user is required.' }
         if ([string]::IsNullOrWhiteSpace($settings.recordingPassword)) { Set-HttpConfigFieldError 'recordingPassword' 'Recording password is required.' }
-        if ([string]::IsNullOrWhiteSpace($settings.recordingFolder)) { Set-HttpConfigFieldError 'recordingFolder' 'Recording folder is required.' }
     }
 
     if ($ShowInlineErrors) {
@@ -1177,45 +1325,172 @@ function Validate-HttpConfigSettings {
     }
 }
 
+function Update-HttpConfigXmlDocument {
+    param([xml]$Doc, $Settings, [bool]$MaskSecrets = $false)
+
+    $httpNode = $Doc.SelectSingleNode('/http')
+    if (-not $httpNode) {
+        throw 'Invalid http.config: /http node not found.'
+    }
+
+    $domain = $Doc.SelectSingleNode('/http/domain')
+    if (-not $domain) {
+        $domain = $Doc.CreateElement('domain')
+        $domain.SetAttribute('id', 'Default')
+        $domain.SetAttribute('domainType', 'http')
+        $domain.SetAttribute('type', 'HttpProcessor')
+        $httpNode.AppendChild($domain) | Out-Null
+    }
+
+    function Set-DomainAttr {
+        param([string]$Name, [string]$Value)
+        if (-not [string]::IsNullOrWhiteSpace($Value)) {
+            $domain.SetAttribute($Name, $Value)
+        }
+    }
+
+    function Ensure-AppNode {
+        param([string]$Id, [string]$Name, [string]$Type)
+
+        $appNode = $domain.SelectSingleNode("application[@id='$Id']")
+        if (-not $appNode) {
+            $appNode = $Doc.CreateElement('application')
+            $appNode.SetAttribute('id', $Id)
+            if ($Name) { $appNode.SetAttribute('name', $Name) }
+            if ($Type) { $appNode.SetAttribute('type', $Type) }
+            $domain.AppendChild($appNode) | Out-Null
+        }
+        return $appNode
+    }
+
+    function Set-AppKey {
+        param([System.Xml.XmlElement]$AppNode, [string]$Key, [string]$Value)
+
+        if (-not $AppNode -or [string]::IsNullOrWhiteSpace($Key) -or $null -eq $Value) { return }
+        $entry = $AppNode.SelectSingleNode("add[@key='$Key']")
+        if (-not $entry) {
+            $entry = $Doc.CreateElement('add')
+            $entry.SetAttribute('key', $Key)
+            $AppNode.AppendChild($entry) | Out-Null
+        }
+        $entry.SetAttribute('value', $Value)
+    }
+
+    Set-DomainAttr -Name 'host' -Value $Settings.hostList
+    if (-not [string]::IsNullOrWhiteSpace($Settings.sqlServer) -and -not [string]::IsNullOrWhiteSpace($Settings.sqlCatalog)) {
+        $connectionString = if ($Settings.sqlIntegrated) {
+            "Integrated Security=Yes;Data Source=$($Settings.sqlServer);Initial Catalog=$($Settings.sqlCatalog)"
+        } else {
+            $pwd = if ($MaskSecrets) { '********' } else { $Settings.sqlPassword }
+            "Integrated Security=No;User ID=$($Settings.sqlUser);Password=$pwd;Data Source=$($Settings.sqlServer);Initial Catalog=$($Settings.sqlCatalog)"
+        }
+        Set-DomainAttr -Name 'connectionString' -Value $connectionString
+    }
+
+    $credentialsNode = $domain.SelectSingleNode('credentials')
+    if (-not $credentialsNode) {
+        $credentialsNode = $Doc.CreateElement('credentials')
+        $domain.AppendChild($credentialsNode) | Out-Null
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($Settings.adminUser) -and -not [string]::IsNullOrWhiteSpace($Settings.adminPassword)) {
+        $adminNode = $credentialsNode.SelectSingleNode("add[@key='admin']")
+        if (-not $adminNode) {
+            $adminNode = $Doc.CreateElement('add')
+            $adminNode.SetAttribute('key', 'admin')
+            $credentialsNode.AppendChild($adminNode) | Out-Null
+        }
+        $adminPwd = if ($MaskSecrets) { '********' } else { $Settings.adminPassword }
+        $adminNode.SetAttribute('credential', "$($Settings.adminUser):$adminPwd")
+        $adminNode.SetAttribute('roles', 'NixxisAdminRole')
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($Settings.reportingUser) -and -not [string]::IsNullOrWhiteSpace($Settings.reportingPassword)) {
+        $reportingNode = $credentialsNode.SelectSingleNode("add[@roles='NixxisReportingRole']")
+        if (-not $reportingNode) {
+            $reportingNode = $Doc.CreateElement('add')
+            $credentialsNode.AppendChild($reportingNode) | Out-Null
+        }
+        $reportingPwd = if ($MaskSecrets) { '********' } else { $Settings.reportingPassword }
+        $reportingNode.SetAttribute('credential', "$($Settings.reportingUser):$reportingPwd")
+        $reportingNode.SetAttribute('roles', 'NixxisReportingRole')
+    }
+
+    $adminApp = Ensure-AppNode -Id 'admin' -Name 'CrAdmin' -Type 'NixxisAdminApp'
+    if (-not [string]::IsNullOrWhiteSpace($Settings.reportServerUrl)) {
+        Set-AppKey -AppNode $adminApp -Key 'reportServerUrl' -Value $Settings.reportServerUrl
+    }
+    if ($Settings.addClientVirtualizationFilter -and -not [string]::IsNullOrWhiteSpace($Settings.clientVirtualizationFilter)) {
+        Set-AppKey -AppNode $adminApp -Key 'ClientVirtualizationFilter' -Value $Settings.clientVirtualizationFilter
+    }
+
+    if ($Settings.addAgentReactivation) {
+        $acdApp = Ensure-AppNode -Id 'acd' -Name 'CrAcd' -Type 'NixxisAcdApp'
+        Set-AppKey -AppNode $acdApp -Key 'agentReactivationEnabled' -Value ($(if ($Settings.agentReactivationValue) { 'true' } else { 'false' }))
+    }
+
+    $recordingValue = Build-RecordingUrlList -Settings $Settings
+    if (-not [string]::IsNullOrWhiteSpace($recordingValue)) {
+        $relayApp = Ensure-AppNode -Id 'relay' -Name 'relay' -Type 'HttpRelay'
+        if ($MaskSecrets -and -not [string]::IsNullOrWhiteSpace($Settings.recordingPassword)) {
+            $recordingValue = $recordingValue -replace [regex]::Escape($Settings.recordingPassword), '********'
+        }
+        Set-AppKey -AppNode $relayApp -Key 'recording' -Value $recordingValue
+    }
+
+    if ($Settings.addSupervision) {
+        $supervisionApp = $domain.SelectSingleNode("application[@id='supervision']")
+        if (-not $supervisionApp) {
+            $supervisionApp = $Doc.CreateElement('application')
+            $supervisionApp.SetAttribute('id', 'supervision')
+            $supervisionApp.SetAttribute('name', 'supervision')
+            $supervisionApp.SetAttribute('type', 'SupervisionApp')
+            $supervisionApp.SetAttribute('preload', 'true')
+            $supervisionApp.SetAttribute('debug', 'false')
+            $domain.AppendChild($supervisionApp) | Out-Null
+        }
+    }
+
+    $sw = [System.IO.StringWriter]::new()
+    $xwSettings = [System.Xml.XmlWriterSettings]::new()
+    $xwSettings.Indent = $true
+    $xwSettings.OmitXmlDeclaration = $false
+    $xw = [System.Xml.XmlWriter]::Create($sw, $xwSettings)
+    try {
+        $Doc.Save($xw)
+        return $sw.ToString()
+    } finally {
+        $xw.Dispose()
+        $sw.Dispose()
+    }
+}
+
+function Get-HttpConfigPreviewSourcePath {
+    $runDir = Join-Path $tbWorkDir.Text.Trim() (Get-Date -Format 'yyyyMMdd')
+    $sampleRoot = Join-Path (Join-Path $runDir 'NixxisApplicationServer') 'SampleConfigFiles'
+    if (-not (Test-Path $sampleRoot)) { return '' }
+
+    $candidates = @(Get-ChildItem -Path $sampleRoot -File -Recurse | Where-Object {
+        $_.Name -ieq 'http.config.sample' -or $_.Name -ieq 'http.config'
+    })
+    if ($candidates.Count -eq 0) { return '' }
+
+    $sampleExact = $candidates | Where-Object { $_.Name -ieq 'http.config.sample' } | Select-Object -First 1
+    if ($sampleExact) { return $sampleExact.FullName }
+    return $candidates[0].FullName
+}
+
 function New-HttpConfigPreviewText {
     $result = Validate-HttpConfigSettings -ShowInlineErrors $true
-    $s = $result.Settings
-    $recordingValue = Build-RecordingUrlList -Settings $s
-    $connectionString = if ($s.sqlIntegrated) {
-        "Integrated Security=Yes;Data Source=$($s.sqlServer);Initial Catalog=$($s.sqlCatalog)"
-    } else {
-        "Integrated Security=No;User ID=$($s.sqlUser);Password=$($s.sqlPassword);Data Source=$($s.sqlServer);Initial Catalog=$($s.sqlCatalog)"
+    $settings = $result.Settings
+
+    $sourcePath = Get-HttpConfigPreviewSourcePath
+    if ([string]::IsNullOrWhiteSpace($sourcePath)) {
+        return "Staged http.config file not found yet. Run Download + Prepare first, then preview again."
     }
 
-    $lines = @()
-    $lines += '<domain host="' + $s.hostList + '" connectionString="' + $connectionString + '">'
-    $lines += '  <credentials>'
-    $lines += '    <add key="admin" credential="' + $s.adminUser + ':********" roles="NixxisAdminRole"/>'
-    $lines += '    <add credential="' + $s.reportingUser + ':********" roles="NixxisReportingRole"/>'
-    $lines += '  </credentials>'
-    $lines += '  <application id="admin">'
-    $lines += '    <add key="reportServerUrl" value="' + $s.reportServerUrl + '"/>'
-    if ($s.addClientVirtualizationFilter) {
-        $lines += '    <add key="ClientVirtualizationFilter" value="' + $s.clientVirtualizationFilter + '"/>'
-    }
-    $lines += '  </application>'
-    if ($s.addAgentReactivation) {
-        $lines += '  <application id="acd">'
-        $lines += '    <add key="agentReactivationEnabled" value="' + ($s.agentReactivationValue.ToString().ToLowerInvariant()) + '"/>'
-        $lines += '  </application>'
-    }
-    if (-not [string]::IsNullOrWhiteSpace($recordingValue)) {
-        $lines += '  <application id="relay">'
-        $lines += '    <add key="recording" value="' + ($recordingValue -replace [regex]::Escape($s.recordingPassword), '********') + '"/>'
-        $lines += '  </application>'
-    }
-    if ($s.addSupervision) {
-        $lines += '  <application id="supervision" name="supervision" type="SupervisionApp" preload="true" debug="false">'
-        $lines += '  </application>'
-    }
-    $lines += '</domain>'
-
-    return ($lines -join [Environment]::NewLine)
+    [xml]$doc = Get-Content -Path $sourcePath -Raw
+    return Update-HttpConfigXmlDocument -Doc $doc -Settings $settings -MaskSecrets $true
 }
 
 function Show-HttpConfigPreview {
@@ -1680,7 +1955,7 @@ function Start-NixxisJob {
     $selectedServerVersion = if ($cbServerVersion.SelectedItem) { [string]$cbServerVersion.SelectedItem } else { '' }
     $selectedBaseVersion = if ($sync.SelectedBaseVersion) { [string]$sync.SelectedBaseVersion } else { '' }
     $operationMode = if ($rbModeInstall.IsChecked) { 'install' } else { 'update' }
-    $httpConfigHostList = $tbHttpHostList.Text.Trim()
+    $httpConfigHostList = Get-JoinedHttpHostList
     $httpConfigSqlIntegrated = [bool]$cbHttpSqlIntegrated.IsChecked
     $httpConfigSqlServer = $tbHttpSqlServer.Text.Trim()
     $httpConfigSqlCatalog = $tbHttpSqlCatalog.Text.Trim()
@@ -1695,10 +1970,9 @@ function Start-NixxisJob {
     $httpConfigAgentReactivationValue = [bool]$cbHttpAgentReactivationValue.IsChecked
     $httpConfigAddClientVirtualizationFilter = [bool]$cbHttpAddClientVirtualizationFilter.IsChecked
     $httpConfigClientVirtualizationFilter = $tbHttpClientVirtualizationFilter.Text.Trim()
-    $httpConfigRecordingHosts = $tbHttpRecordingHosts.Text.Trim()
+    $httpConfigRecordingHosts = Get-JoinedHttpRecordingHosts
     $httpConfigRecordingUser = $tbHttpRecordingUser.Text.Trim()
     $httpConfigRecordingPassword = $pbHttpRecordingPassword.Password
-    $httpConfigRecordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim([char[]]@('/','\'))
     $httpConfigAddSupervision = [bool]$cbHttpAddSupervision.IsChecked
     $optEnsureDotNet48 = [bool]$cbEnsureDotNet48.IsChecked
     $optInstallMoveFiles = [bool]$cbInstallMoveFiles.IsChecked
@@ -1746,7 +2020,6 @@ function Start-NixxisJob {
     $rs.SessionStateProxy.SetVariable('httpConfigRecordingHosts', $httpConfigRecordingHosts)
     $rs.SessionStateProxy.SetVariable('httpConfigRecordingUser', $httpConfigRecordingUser)
     $rs.SessionStateProxy.SetVariable('httpConfigRecordingPassword', $httpConfigRecordingPassword)
-    $rs.SessionStateProxy.SetVariable('httpConfigRecordingFolder', $httpConfigRecordingFolder)
     $rs.SessionStateProxy.SetVariable('httpConfigAddSupervision', $httpConfigAddSupervision)
     $rs.SessionStateProxy.SetVariable('optEnsureDotNet48', $optEnsureDotNet48)
     $rs.SessionStateProxy.SetVariable('optInstallMoveFiles', $optInstallMoveFiles)
@@ -2267,7 +2540,7 @@ $sbConfigureHttpConfig = {
         }
 
         $recordingHosts = @($httpConfigRecordingHosts -split ';' | ForEach-Object { $_.Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $recordingConfigured = ($recordingHosts.Count -gt 0) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingUser) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingPassword) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingFolder)
+        $recordingConfigured = ($recordingHosts.Count -gt 0) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingUser) -and -not [string]::IsNullOrWhiteSpace($httpConfigRecordingPassword)
         if ($recordingConfigured) {
             $relayApp = $domain.SelectSingleNode("application[@id='relay']")
             if (-not $relayApp) {
@@ -2276,12 +2549,12 @@ $sbConfigureHttpConfig = {
                 $relayApp.SetAttribute('serviceId', 'recording')
                 $relayApp.SetAttribute('debug', 'true')
             }
-            $folder = $httpConfigRecordingFolder.Trim([char[]]@('/','\'))
             $recUrls = @($recordingHosts | ForEach-Object {
-                ('ftp://{0}:{1}@{2}/{3}/' -f $httpConfigRecordingUser, $httpConfigRecordingPassword, $_, $folder)
+                $normalizedEndpoint = ([string]$_).Trim().TrimEnd('/')
+                ('ftp://{0}:{1}@{2}/' -f $httpConfigRecordingUser, $httpConfigRecordingPassword, $normalizedEndpoint)
             })
             Set-ApplicationKey -AppNode $relayApp -Key 'recording' -Value ($recUrls -join ';')
-        } elseif (($recordingHosts.Count -gt 0) -or -not [string]::IsNullOrWhiteSpace($httpConfigRecordingFolder)) {
+        } elseif ($recordingHosts.Count -gt 0) {
             Write-BgLog 'HTTP.Config: recording parameters incomplete - recording key left unchanged.' 'WARN'
         }
 
@@ -2779,7 +3052,28 @@ $btnHttpValidate.Add_Click({
 
 $btnHttpPreview.Add_Click({ Show-HttpConfigPreview })
 
-foreach ($tb in @($tbHttpHostList,$tbHttpSqlServer,$tbHttpSqlCatalog,$tbHttpSqlUser,$tbHttpAdminUser,$tbHttpReportingUser,$tbHttpReportServerUrl,$tbHttpClientVirtualizationFilter,$tbHttpRecordingHosts,$tbHttpRecordingUser,$tbHttpRecordingFolder)) {
+$btnHttpAddHostEndpoint.Add_Click({
+    Add-HttpHostEndpoint -EndpointHost $tbHttpHostName.Text -EndpointPort $tbHttpHostPort.Text
+    $tbHttpHostName.Text = ''
+    Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null
+})
+$btnHttpRemoveHostEndpoint.Add_Click({
+    Remove-SelectedHttpHostEndpoint
+    Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null
+})
+
+$btnHttpAddRecordingEndpoint.Add_Click({
+    Add-HttpRecordingEndpoint -EndpointHost $tbHttpRecordingHostName.Text -EndpointPort $tbHttpRecordingHostPort.Text -EndpointFolder $tbHttpRecordingEndpointFolder.Text
+    $tbHttpRecordingHostName.Text = ''
+    $tbHttpRecordingEndpointFolder.Text = ''
+    Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null
+})
+$btnHttpRemoveRecordingEndpoint.Add_Click({
+    Remove-SelectedHttpRecordingEndpoint
+    Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null
+})
+
+foreach ($tb in @($tbHttpHostName,$tbHttpHostPort,$tbHttpSqlServer,$tbHttpSqlCatalog,$tbHttpSqlUser,$tbHttpAdminUser,$tbHttpReportingUser,$tbHttpReportServerUrl,$tbHttpClientVirtualizationFilter,$tbHttpRecordingHostName,$tbHttpRecordingHostPort,$tbHttpRecordingEndpointFolder,$tbHttpRecordingUser)) {
     $tb.Add_TextChanged({ Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null })
 }
 foreach ($pb in @($pbHttpSqlPassword,$pbHttpAdminPassword,$pbHttpReportingPassword,$pbHttpRecordingPassword)) {
@@ -2798,6 +3092,28 @@ $btnBrowseOffline.Add_Click({
 })
 
 $btnRefreshStatus.Add_Click({ Update-ServiceStatus })
+
+$btnForceKillServiceProcess.Add_Click({
+    try {
+        Stop-Process -Name 'crappserver' -Force -ErrorAction Stop
+        Add-LogEntry 'Force kill executed: stop-process -name "crappserver" -force' 'WARN'
+    } catch {
+        Add-LogEntry "Force kill failed or process not found: $_" 'WARN'
+    }
+    Update-ServiceStatus
+})
+
+$btnQuickStartService.Add_Click({
+    $serviceName = $tbServiceName.Text.Trim()
+    if ([string]::IsNullOrWhiteSpace($serviceName)) { $serviceName = 'crappserver' }
+    try {
+        Start-Service -Name $serviceName -ErrorAction Stop
+        Add-LogEntry "Start service requested for '$serviceName'." 'OK'
+    } catch {
+        Add-LogEntry "Start service failed for '$serviceName': $_" 'ERROR'
+    }
+    Update-ServiceStatus
+})
 
 $btnGeneratePlan.Add_Click({ Build-ExecutionPlan })
 $btnRunPreflight.Add_Click({ Run-PreflightChecks })
