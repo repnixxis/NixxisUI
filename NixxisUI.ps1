@@ -444,7 +444,7 @@ $script:AppVersion = '1.4'
                                 <TextBox x:Name="tbHttpSqlServer" FontSize="11" Text="localhost"/>
                                 <TextBlock x:Name="tbHttpErrSqlServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
                                 <Label Content="SQL Initial Catalog pattern:"/>
-                                <TextBox x:Name="tbHttpSqlCatalog" FontSize="11" Text="{0}_{1}"/>
+                                <TextBox x:Name="tbHttpSqlCatalog" FontSize="11" Text="{}{0}_{1}"/>
                                 <TextBlock x:Name="tbHttpErrSqlCatalog" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
 
                                 <Label Content="SQL User (required when integrated security is off):"/>
@@ -498,7 +498,6 @@ $script:AppVersion = '1.4'
                                 <StackPanel Orientation="Horizontal">
                                     <Button x:Name="btnHttpValidate" Content="Validate Config Inputs" Style="{StaticResource ActionBtn}" Width="145" Margin="0,0,6,0"/>
                                     <Button x:Name="btnHttpPreview" Content="Preview XML Changes" Style="{StaticResource ActionBtn}" Width="130" Margin="0,0,6,0"/>
-                                    <Button x:Name="btnHttpSaveProfile" Content="Save Install Profile" Style="{StaticResource ActionBtn}" Width="130"/>
                                 </StackPanel>
                                 <TextBlock x:Name="tbHttpConfigSummary" Foreground="#b6c7d8" FontSize="10" Margin="2,5,0,0" Text="No validation run yet."/>
                             </StackPanel>
@@ -806,7 +805,6 @@ $tbHttpRecordingFolder = ctrl 'tbHttpRecordingFolder'
 $cbHttpAddSupervision = ctrl 'cbHttpAddSupervision'
 $btnHttpValidate = ctrl 'btnHttpValidate'
 $btnHttpPreview = ctrl 'btnHttpPreview'
-$btnHttpSaveProfile = ctrl 'btnHttpSaveProfile'
 $tbHttpConfigSummary = ctrl 'tbHttpConfigSummary'
 $tbHttpErrHost = ctrl 'tbHttpErrHost'
 $tbHttpErrSqlServer = ctrl 'tbHttpErrSqlServer'
@@ -827,7 +825,7 @@ $tbHttpErrRecordingFolder = ctrl 'tbHttpErrRecordingFolder'
 $allOpButtons = @(
     $btnRunFull,$btnRunInitialSetup,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService,
     $btnEnsureDotNet48,$btnInstallService,$btnCopyTools,$btnInstallMoveFiles,$btnCreateReportingUser,$btnConfigFirewall,$btnDeployTranscription,$btnLaunchDeployReports,
-    $btnHttpValidate,$btnHttpPreview,$btnHttpSaveProfile
+    $btnHttpValidate,$btnHttpPreview
 )
 
 $script:PlanItems = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
@@ -1045,7 +1043,7 @@ function Get-HttpConfigUiSettings {
         recordingHosts = $tbHttpRecordingHosts.Text.Trim()
         recordingUser = $tbHttpRecordingUser.Text.Trim()
         recordingPassword = $pbHttpRecordingPassword.Password
-        recordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim('/','\\')
+        recordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim([char[]]@('/','\'))
         addSupervision = [bool]$cbHttpAddSupervision.IsChecked
     }
 }
@@ -1085,7 +1083,7 @@ function Build-RecordingUrlList {
     }
     if ($hosts.Count -eq 0) { return '' }
 
-    $folder = $Settings.recordingFolder.Trim('/','\\')
+    $folder = $Settings.recordingFolder.Trim([char[]]@('/','\'))
     $urls = @()
     foreach ($h in $hosts) {
         $urls += ('ftp://{0}:{1}@{2}/{3}/' -f $Settings.recordingUser, $Settings.recordingPassword, $h, $folder)
@@ -1234,25 +1232,6 @@ function Show-HttpConfigPreview {
     $tb.Text = $previewText
     $form.Controls.Add($tb)
     $form.ShowDialog() | Out-Null
-}
-
-function Save-HttpConfigInstallProfile {
-    $result = Validate-HttpConfigSettings -ShowInlineErrors $true
-    $settings = $result.Settings
-
-    $dlg = [Microsoft.Win32.SaveFileDialog]::new()
-    $dlg.Title = 'Save HTTP.Config Install Profile'
-    $dlg.Filter = 'Encrypted Profile (*.ncsprofile)|*.ncsprofile|All Files (*.*)|*.*'
-    $dlg.FileName = "HttpConfigProfile_$(Get-Date -Format 'yyyyMMdd_HHmmss').ncsprofile"
-    if ($dlg.ShowDialog() -ne $true) { return }
-
-    $json = ($settings | ConvertTo-Json -Depth 5 -Compress)
-    $plainBytes = [System.Text.Encoding]::UTF8.GetBytes($json)
-    $entropy = [System.Text.Encoding]::UTF8.GetBytes('NCS-HttpConfig-Profile-v1')
-    $protected = [System.Security.Cryptography.ProtectedData]::Protect($plainBytes, $entropy, [System.Security.Cryptography.DataProtectionScope]::CurrentUser)
-    [System.IO.File]::WriteAllText($dlg.FileName, [Convert]::ToBase64String($protected), [System.Text.Encoding]::UTF8)
-    Add-LogEntry "Saved encrypted HTTP.Config install profile: $($dlg.FileName)" 'OK'
-    $tbHttpConfigSummary.Text = 'HTTP.Config install profile saved.'
 }
 
 function Update-HttpConfigUiState {
@@ -1715,7 +1694,7 @@ function Start-NixxisJob {
     $httpConfigRecordingHosts = $tbHttpRecordingHosts.Text.Trim()
     $httpConfigRecordingUser = $tbHttpRecordingUser.Text.Trim()
     $httpConfigRecordingPassword = $pbHttpRecordingPassword.Password
-    $httpConfigRecordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim('/','\\')
+    $httpConfigRecordingFolder = $tbHttpRecordingFolder.Text.Trim().Trim([char[]]@('/','\'))
     $httpConfigAddSupervision = [bool]$cbHttpAddSupervision.IsChecked
     $optEnsureDotNet48 = [bool]$cbEnsureDotNet48.IsChecked
     $optInstallMoveFiles = [bool]$cbInstallMoveFiles.IsChecked
@@ -2293,7 +2272,7 @@ $sbConfigureHttpConfig = {
                 $relayApp.SetAttribute('serviceId', 'recording')
                 $relayApp.SetAttribute('debug', 'true')
             }
-            $folder = $httpConfigRecordingFolder.Trim('/','\\')
+            $folder = $httpConfigRecordingFolder.Trim([char[]]@('/','\'))
             $recUrls = @($recordingHosts | ForEach-Object {
                 ('ftp://{0}:{1}@{2}/{3}/' -f $httpConfigRecordingUser, $httpConfigRecordingPassword, $_, $folder)
             })
@@ -2795,7 +2774,6 @@ $btnHttpValidate.Add_Click({
 })
 
 $btnHttpPreview.Add_Click({ Show-HttpConfigPreview })
-$btnHttpSaveProfile.Add_Click({ Save-HttpConfigInstallProfile })
 
 foreach ($tb in @($tbHttpHostList,$tbHttpSqlServer,$tbHttpSqlCatalog,$tbHttpSqlUser,$tbHttpAdminUser,$tbHttpReportingUser,$tbHttpReportServerUrl,$tbHttpClientVirtualizationFilter,$tbHttpRecordingHosts,$tbHttpRecordingUser,$tbHttpRecordingFolder)) {
     $tb.Add_TextChanged({ Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null })
