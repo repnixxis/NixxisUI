@@ -435,99 +435,158 @@ $script:AppVersion = '1.7'
                         <GroupBox Header="  HTTP.Config Wizard (Install Only)  ">
                             <StackPanel>
                                 <TextBlock Foreground="#7f93a7" FontSize="10" TextWrapping="Wrap" Margin="2,0,0,6"
-                                           Text="Configure critical http.config values before deploy. This applies only during Fresh Install."/>
+                                           Text="Guided setup for critical http.config values. Use profiles to start quickly, then complete each step."/>
 
-                                <Label Content="Domain endpoints:"/>
-                                <Grid>
+                                <Border Background="#152532" CornerRadius="5" Padding="8" Margin="0,0,0,6">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                                <TextBlock Foreground="#9bd3e6" FontSize="10" Text="Quick Start Profile" Margin="0,0,0,2"/>
+                                                <ComboBox x:Name="cbHttpConfigProfile" MinHeight="26" Margin="0,0,0,2" SelectedIndex="0">
+                                                    <ComboBoxItem Content="Guided defaults (recommended)"/>
+                                                    <ComboBoxItem Content="Single-host local lab"/>
+                                                    <ComboBoxItem Content="Production starter"/>
+                                                    <ComboBoxItem Content="Production + recording"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <Button x:Name="btnHttpApplyProfile" Grid.Column="1" Content="Apply Profile" Style="{StaticResource ActionBtn}" Width="106" Height="27" Margin="0,18,0,0"/>
+                                        </Grid>
+
+                                        <TextBlock x:Name="tbHttpWizardStep" Foreground="#cde7f4" FontSize="11" FontWeight="SemiBold" Margin="0,4,0,0" Text="Step 1 of 5 - Domain Endpoints"/>
+                                        <TextBlock x:Name="tbHttpWizardHint" Foreground="#7f93a7" FontSize="10" Margin="0,1,0,0" TextWrapping="Wrap"
+                                                   Text="Define how the HTTP domain can be reached. Add each endpoint as host or host:port."/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid Margin="0,0,0,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="78"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="tbHttpHostName" Grid.Column="0" FontSize="11" Text="" Margin="0,0,4,0"/>
-                                    <TextBox x:Name="tbHttpHostPort" Grid.Column="1" FontSize="11" Text="" Margin="0,0,4,0"/>
-                                    <Button x:Name="btnHttpAddHostEndpoint" Grid.Column="2" Content="Add" Style="{StaticResource ActionBtn}" Width="52" Height="26" Margin="0,0,4,0"/>
-                                    <Button x:Name="btnHttpRemoveHostEndpoint" Grid.Column="3" Content="Remove" Style="{StaticResource ActionBtn}" Width="72" Height="26"/>
-                                </Grid>
-                                <ListBox x:Name="lbHttpHostEndpoints" MinHeight="70" MaxHeight="96" Margin="0,4,0,0" Background="#17202b" Foreground="#dde7ef" BorderBrush="#334354" BorderThickness="1"/>
-                                <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,2,0,0" Text="Add each endpoint separately (example: 172.26.100.133 + 8088, 509.nixxis.cloud + 8088, 509.nixxis.cloud without port)."/>
-                                <TextBlock x:Name="tbHttpErrHost" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
-
-                                <CheckBox x:Name="cbHttpSqlIntegrated" Content="Use SQL Integrated Security" IsChecked="True" Margin="0,2,0,0"/>
-                                <Label Content="SQL Server / Data Source:"/>
-                                <TextBox x:Name="tbHttpSqlServer" FontSize="11" Text="localhost"/>
-                                <TextBlock x:Name="tbHttpErrSqlServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <Label Content="SQL Initial Catalog pattern:"/>
-                                <TextBox x:Name="tbHttpSqlCatalog" FontSize="11" Text=""/>
-                                <TextBlock x:Name="tbHttpErrSqlCatalog" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
-
-                                <Label Content="SQL User (required when integrated security is off):"/>
-                                <TextBox x:Name="tbHttpSqlUser" FontSize="11" Text=""/>
-                                <TextBlock x:Name="tbHttpErrSqlUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <Label Content="SQL Password:"/>
-                                <PasswordBox x:Name="pbHttpSqlPassword" FontSize="11"/>
-                                <TextBlock x:Name="tbHttpErrSqlPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
-
-                                <Label Content="Admin credential user (NixxisAdminRole):"/>
-                                <TextBox x:Name="tbHttpAdminUser" FontSize="11" Text="DefaultAdmin"/>
-                                <TextBlock x:Name="tbHttpErrAdminUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <Label Content="Admin credential password:"/>
-                                <PasswordBox x:Name="pbHttpAdminPassword" FontSize="11"/>
-                                <TextBlock x:Name="tbHttpErrAdminPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
-
-                                <Label Content="Reporting credential (domain\user):"/>
-                                <TextBox x:Name="tbHttpReportingUser" FontSize="11" Text=""/>
-                                <TextBlock x:Name="tbHttpErrReportingUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <Label Content="Reporting credential password:"/>
-                                <PasswordBox x:Name="pbHttpReportingPassword" FontSize="11"/>
-                                <TextBlock x:Name="tbHttpErrReportingPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
-
-                                <Label Content="Report Server URL:"/>
-                                <TextBox x:Name="tbHttpReportServerUrl" FontSize="11" Text="http://localhost/ReportServer"/>
-                                <TextBlock x:Name="tbHttpErrReportServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
-
-                                <CheckBox x:Name="cbHttpAddAgentReactivation" Content="Add key in ACD: agentReactivationEnabled" IsChecked="True"/>
-                                <CheckBox x:Name="cbHttpAgentReactivationValue" Content="agentReactivationEnabled value = true (unchecked = false)" IsChecked="False" Margin="14,0,0,4"/>
-
-                                <CheckBox x:Name="cbHttpAddClientVirtualizationFilter" Content="Add key in Admin: ClientVirtualizationFilter" IsChecked="True"/>
-                                <Label Content="ClientVirtualizationFilter value:"/>
-                                <TextBox x:Name="tbHttpClientVirtualizationFilter" FontSize="11" Text=".+"/>
-                                <TextBlock x:Name="tbHttpErrClientVirtualizationFilter" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
-
-                                <Label Content="Recording FTP endpoints:"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="78"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="tbHttpRecordingHostName" Grid.Column="0" FontSize="11" Text="" Margin="0,0,4,0"/>
-                                    <TextBox x:Name="tbHttpRecordingHostPort" Grid.Column="1" FontSize="11" Text="21" Margin="0,0,4,0"/>
-                                    <TextBox x:Name="tbHttpRecordingEndpointFolder" Grid.Column="2" FontSize="11" Text="" Margin="0,0,4,0"/>
-                                    <Button x:Name="btnHttpAddRecordingEndpoint" Grid.Column="3" Content="Add" Style="{StaticResource ActionBtn}" Width="52" Height="26" Margin="0,0,4,0"/>
-                                    <Button x:Name="btnHttpRemoveRecordingEndpoint" Grid.Column="4" Content="Remove" Style="{StaticResource ActionBtn}" Width="72" Height="26"/>
+                                    <Button x:Name="btnHttpStep1" Grid.Column="0" Content="1. Endpoints" Style="{StaticResource ActionBtn}" Margin="0,0,4,0" Height="26"/>
+                                    <Button x:Name="btnHttpStep2" Grid.Column="1" Content="2. SQL" Style="{StaticResource ActionBtn}" Margin="0,0,4,0" Height="26"/>
+                                    <Button x:Name="btnHttpStep3" Grid.Column="2" Content="3. Credentials" Style="{StaticResource ActionBtn}" Margin="0,0,4,0" Height="26"/>
+                                    <Button x:Name="btnHttpStep4" Grid.Column="3" Content="4. App Keys" Style="{StaticResource ActionBtn}" Margin="0,0,4,0" Height="26"/>
+                                    <Button x:Name="btnHttpStep5" Grid.Column="4" Content="5. Recording/Review" Style="{StaticResource ActionBtn}" Height="26"/>
                                 </Grid>
-                                <ListBox x:Name="lbHttpRecordingEndpoints" MinHeight="70" MaxHeight="96" Margin="0,4,0,0" Background="#17202b" Foreground="#dde7ef" BorderBrush="#334354" BorderThickness="1"/>
-                                <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,2,0,0" Text="Add each FTP endpoint with its folder. Example: host=172.26.100.6, port=21, folder=FOLDER1."/>
-                                <TextBlock x:Name="tbHttpErrRecordingHosts" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <Label Content="Recording FTP user:"/>
-                                <TextBox x:Name="tbHttpRecordingUser" FontSize="11" Text="recording"/>
-                                <TextBlock x:Name="tbHttpErrRecordingUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <Label Content="Recording FTP password:"/>
-                                <PasswordBox x:Name="pbHttpRecordingPassword" FontSize="11"/>
-                                <TextBlock x:Name="tbHttpErrRecordingPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
-                                <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,1,0,4" Text="Each endpoint stores its own folder and will be emitted with trailing slash."/>
 
-                                <CheckBox x:Name="cbHttpAddSupervision" Content="Add application supervision" IsChecked="False" Margin="0,0,0,6"/>
-
-                                <StackPanel Orientation="Horizontal">
-                                    <Button x:Name="btnHttpValidate" Content="Validate Config Inputs" Style="{StaticResource ActionBtn}" Width="145" Margin="0,0,6,0"/>
-                                    <Button x:Name="btnHttpPreview" Content="Preview XML Changes" Style="{StaticResource ActionBtn}" Width="130" Margin="0,0,6,0"/>
+                                <StackPanel x:Name="pnlHttpStep1" Visibility="Visible">
+                                    <Label Content="Domain endpoints:"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="78"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="tbHttpHostName" Grid.Column="0" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                        <TextBox x:Name="tbHttpHostPort" Grid.Column="1" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                        <Button x:Name="btnHttpAddHostEndpoint" Grid.Column="2" Content="Add" Style="{StaticResource ActionBtn}" Width="52" Height="26" Margin="0,0,4,0"/>
+                                        <Button x:Name="btnHttpRemoveHostEndpoint" Grid.Column="3" Content="Remove" Style="{StaticResource ActionBtn}" Width="72" Height="26"/>
+                                    </Grid>
+                                    <ListBox x:Name="lbHttpHostEndpoints" MinHeight="70" MaxHeight="96" Margin="0,4,0,0" Background="#17202b" Foreground="#dde7ef" BorderBrush="#334354" BorderThickness="1"/>
+                                    <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,2,0,0" Text="Example: 172.26.100.133:8088, 509.nixxis.cloud:8088, or 509.nixxis.cloud"/>
+                                    <TextBlock x:Name="tbHttpErrHost" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
                                 </StackPanel>
-                                <TextBlock x:Name="tbHttpConfigSummary" Foreground="#b6c7d8" FontSize="10" Margin="2,5,0,0" Text="No validation run yet."/>
+
+                                <StackPanel x:Name="pnlHttpStep2" Visibility="Collapsed">
+                                    <CheckBox x:Name="cbHttpSqlIntegrated" Content="Use SQL Integrated Security" IsChecked="True" Margin="0,2,0,0"/>
+                                    <Label Content="SQL Server / Data Source:"/>
+                                    <TextBox x:Name="tbHttpSqlServer" FontSize="11" Text="localhost"/>
+                                    <TextBlock x:Name="tbHttpErrSqlServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                    <Label Content="SQL Initial Catalog pattern:"/>
+                                    <TextBox x:Name="tbHttpSqlCatalog" FontSize="11" Text=""/>
+                                    <TextBlock x:Name="tbHttpErrSqlCatalog" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                    <Label Content="SQL User (required when integrated security is off):"/>
+                                    <TextBox x:Name="tbHttpSqlUser" FontSize="11" Text=""/>
+                                    <TextBlock x:Name="tbHttpErrSqlUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                    <Label Content="SQL Password:"/>
+                                    <PasswordBox x:Name="pbHttpSqlPassword" FontSize="11"/>
+                                    <TextBlock x:Name="tbHttpErrSqlPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+                                </StackPanel>
+
+                                <StackPanel x:Name="pnlHttpStep3" Visibility="Collapsed">
+                                    <Label Content="Admin credential user (NixxisAdminRole):"/>
+                                    <TextBox x:Name="tbHttpAdminUser" FontSize="11" Text="DefaultAdmin"/>
+                                    <TextBlock x:Name="tbHttpErrAdminUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                    <Label Content="Admin credential password:"/>
+                                    <PasswordBox x:Name="pbHttpAdminPassword" FontSize="11"/>
+                                    <TextBlock x:Name="tbHttpErrAdminPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                    <Label Content="Reporting credential (domain\user):"/>
+                                    <TextBox x:Name="tbHttpReportingUser" FontSize="11" Text=""/>
+                                    <TextBlock x:Name="tbHttpErrReportingUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                    <Label Content="Reporting credential password:"/>
+                                    <PasswordBox x:Name="pbHttpReportingPassword" FontSize="11"/>
+                                    <TextBlock x:Name="tbHttpErrReportingPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+                                </StackPanel>
+
+                                <StackPanel x:Name="pnlHttpStep4" Visibility="Collapsed">
+                                    <Label Content="Report Server URL:"/>
+                                    <TextBox x:Name="tbHttpReportServerUrl" FontSize="11" Text="http://localhost/ReportServer"/>
+                                    <TextBlock x:Name="tbHttpErrReportServer" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+
+                                    <CheckBox x:Name="cbHttpAddAgentReactivation" Content="Add key in ACD: agentReactivationEnabled" IsChecked="True"/>
+                                    <CheckBox x:Name="cbHttpAgentReactivationValue" Content="agentReactivationEnabled value = true (unchecked = false)" IsChecked="False" Margin="14,0,0,4"/>
+
+                                    <CheckBox x:Name="cbHttpAddClientVirtualizationFilter" Content="Add key in Admin: ClientVirtualizationFilter" IsChecked="True"/>
+                                    <Label Content="ClientVirtualizationFilter value:"/>
+                                    <TextBox x:Name="tbHttpClientVirtualizationFilter" FontSize="11" Text=".+"/>
+                                    <TextBlock x:Name="tbHttpErrClientVirtualizationFilter" Foreground="#f44747" FontSize="10" Margin="2,1,0,4" Text=""/>
+                                </StackPanel>
+
+                                <StackPanel x:Name="pnlHttpStep5" Visibility="Collapsed">
+                                    <Label Content="Recording FTP endpoints (optional):"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="78"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="tbHttpRecordingHostName" Grid.Column="0" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                        <TextBox x:Name="tbHttpRecordingHostPort" Grid.Column="1" FontSize="11" Text="21" Margin="0,0,4,0"/>
+                                        <TextBox x:Name="tbHttpRecordingEndpointFolder" Grid.Column="2" FontSize="11" Text="" Margin="0,0,4,0"/>
+                                        <Button x:Name="btnHttpAddRecordingEndpoint" Grid.Column="3" Content="Add" Style="{StaticResource ActionBtn}" Width="52" Height="26" Margin="0,0,4,0"/>
+                                        <Button x:Name="btnHttpRemoveRecordingEndpoint" Grid.Column="4" Content="Remove" Style="{StaticResource ActionBtn}" Width="72" Height="26"/>
+                                    </Grid>
+                                    <ListBox x:Name="lbHttpRecordingEndpoints" MinHeight="70" MaxHeight="96" Margin="0,4,0,0" Background="#17202b" Foreground="#dde7ef" BorderBrush="#334354" BorderThickness="1"/>
+                                    <TextBlock Foreground="#7f93a7" FontSize="10" Margin="2,2,0,0" Text="If left empty, recording values are not written."/>
+                                    <TextBlock x:Name="tbHttpErrRecordingHosts" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                    <Label Content="Recording FTP user:"/>
+                                    <TextBox x:Name="tbHttpRecordingUser" FontSize="11" Text=""/>
+                                    <TextBlock x:Name="tbHttpErrRecordingUser" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+                                    <Label Content="Recording FTP password:"/>
+                                    <PasswordBox x:Name="pbHttpRecordingPassword" FontSize="11"/>
+                                    <TextBlock x:Name="tbHttpErrRecordingPassword" Foreground="#f44747" FontSize="10" Margin="2,1,0,2" Text=""/>
+
+                                    <CheckBox x:Name="cbHttpAddSupervision" Content="Add application supervision" IsChecked="False" Margin="0,2,0,6"/>
+
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="btnHttpValidate" Content="Validate Full Config" Style="{StaticResource ActionBtn}" Width="130" Margin="0,0,6,0"/>
+                                        <Button x:Name="btnHttpPreview" Content="Preview XML Changes" Style="{StaticResource ActionBtn}" Width="130" Margin="0,0,6,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="btnHttpPrevStep" Grid.Column="0" Content="&lt; Back" Style="{StaticResource ActionBtn}" Width="84" Margin="0,0,6,0"/>
+                                    <Button x:Name="btnHttpNextStep" Grid.Column="1" Content="Next &gt;" Style="{StaticResource ActionBtn}" Width="84" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="tbHttpConfigSummary" Grid.Column="2" Foreground="#b6c7d8" FontSize="10" Margin="2,5,0,0" Text="No validation run yet." TextWrapping="Wrap"/>
+                                </Grid>
                             </StackPanel>
                         </GroupBox>
 
@@ -858,11 +917,28 @@ $tbHttpErrClientVirtualizationFilter = ctrl 'tbHttpErrClientVirtualizationFilter
 $tbHttpErrRecordingHosts = ctrl 'tbHttpErrRecordingHosts'
 $tbHttpErrRecordingUser = ctrl 'tbHttpErrRecordingUser'
 $tbHttpErrRecordingPassword = ctrl 'tbHttpErrRecordingPassword'
+$cbHttpConfigProfile = ctrl 'cbHttpConfigProfile'
+$btnHttpApplyProfile = ctrl 'btnHttpApplyProfile'
+$tbHttpWizardStep = ctrl 'tbHttpWizardStep'
+$tbHttpWizardHint = ctrl 'tbHttpWizardHint'
+$btnHttpStep1 = ctrl 'btnHttpStep1'
+$btnHttpStep2 = ctrl 'btnHttpStep2'
+$btnHttpStep3 = ctrl 'btnHttpStep3'
+$btnHttpStep4 = ctrl 'btnHttpStep4'
+$btnHttpStep5 = ctrl 'btnHttpStep5'
+$pnlHttpStep1 = ctrl 'pnlHttpStep1'
+$pnlHttpStep2 = ctrl 'pnlHttpStep2'
+$pnlHttpStep3 = ctrl 'pnlHttpStep3'
+$pnlHttpStep4 = ctrl 'pnlHttpStep4'
+$pnlHttpStep5 = ctrl 'pnlHttpStep5'
+$btnHttpPrevStep = ctrl 'btnHttpPrevStep'
+$btnHttpNextStep = ctrl 'btnHttpNextStep'
 
 $allOpButtons = @(
     $btnRunFull,$btnRunInitialSetup,$btnDownload,$btnPrepare,$btnStopService,$btnBackup,$btnCleanup,$btnDeploy,$btnStartService,
     $btnEnsureDotNet48,$btnInstallService,$btnCopyTools,$btnInstallMoveFiles,$btnCreateReportingUser,$btnConfigFirewall,$btnDeployTranscription,$btnLaunchDeployReports,
-    $btnHttpValidate,$btnHttpPreview
+    $btnQuickStartService,$btnHttpValidate,$btnHttpPreview
+    $btnHttpApplyProfile,$btnHttpPrevStep,$btnHttpNextStep,$btnHttpStep1,$btnHttpStep2,$btnHttpStep3,$btnHttpStep4,$btnHttpStep5
 )
 
 $script:PlanItems = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
@@ -882,6 +958,7 @@ $lbHttpHostEndpoints.ItemsSource = $script:HttpHostEndpoints
 $script:HttpRecordingEndpoints = [System.Collections.ObjectModel.ObservableCollection[string]]::new()
 $lbHttpRecordingEndpoints.ItemsSource = $script:HttpRecordingEndpoints
 $script:HttpConfigValidationErrors = @{}
+$script:HttpWizardCurrentStep = 1
 $script:HttpConfigErrorTargets = @{
     host = $tbHttpErrHost
     sqlServer = $tbHttpErrSqlServer
@@ -1520,6 +1597,168 @@ function Update-HttpConfigUiState {
 
     $tbHttpClientVirtualizationFilter.IsEnabled = [bool]$cbHttpAddClientVirtualizationFilter.IsChecked
     $cbHttpAgentReactivationValue.IsEnabled = [bool]$cbHttpAddAgentReactivation.IsChecked
+}
+
+function Get-HttpConfigProfileName {
+    if (-not $cbHttpConfigProfile.SelectedItem) { return 'Guided defaults (recommended)' }
+    if ($cbHttpConfigProfile.SelectedItem -is [System.Windows.Controls.ComboBoxItem]) {
+        return [string]$cbHttpConfigProfile.SelectedItem.Content
+    }
+    return [string]$cbHttpConfigProfile.SelectedItem
+}
+
+function Set-HttpWizardStep {
+    param([int]$Step)
+
+    if ($Step -lt 1) { $Step = 1 }
+    if ($Step -gt 5) { $Step = 5 }
+    $script:HttpWizardCurrentStep = $Step
+
+    $panels = @($pnlHttpStep1,$pnlHttpStep2,$pnlHttpStep3,$pnlHttpStep4,$pnlHttpStep5)
+    for ($i = 0; $i -lt $panels.Count; $i++) {
+        $panels[$i].Visibility = if (($i + 1) -eq $Step) { 'Visible' } else { 'Collapsed' }
+    }
+
+    $stepButtons = @($btnHttpStep1,$btnHttpStep2,$btnHttpStep3,$btnHttpStep4,$btnHttpStep5)
+    for ($i = 0; $i -lt $stepButtons.Count; $i++) {
+        if (($i + 1) -eq $Step) {
+            $stepButtons[$i].Background = Get-Brush '#0e7490'
+            $stepButtons[$i].Foreground = Get-Brush '#ffffff'
+            $stepButtons[$i].FontWeight = 'SemiBold'
+        } else {
+            $stepButtons[$i].Background = Get-Brush '#1b2530'
+            $stepButtons[$i].Foreground = Get-Brush '#dde7ef'
+            $stepButtons[$i].FontWeight = 'Normal'
+        }
+    }
+
+    $stepTitles = @('Domain Endpoints','SQL Connection','Credentials','Application Keys','Recording and Review')
+    $stepHints = @(
+        'Define every host that should resolve this HTTP service.',
+        'Choose SQL integrated security or provide explicit SQL credentials.',
+        'Set admin and reporting credentials that are written into http.config.',
+        'Configure report server URL and optional app keys for ACD/Admin nodes.',
+        'Optional recording relay setup, supervision flag, then validate and preview.'
+    )
+    $tbHttpWizardStep.Text = "Step $Step of 5 - $($stepTitles[$Step - 1])"
+    $tbHttpWizardHint.Text = $stepHints[$Step - 1]
+
+    $btnHttpPrevStep.IsEnabled = ($Step -gt 1)
+    $btnHttpNextStep.Content = if ($Step -eq 5) { 'Finish' } else { 'Next >' }
+}
+
+function Test-HttpWizardStepValid {
+    param([int]$Step)
+
+    $validation = Validate-HttpConfigSettings -ShowInlineErrors $true
+    $errorMap = $validation.Errors
+
+    $stepFields = switch ($Step) {
+        1 { @('host') }
+        2 { @('sqlServer','sqlCatalog','sqlUser','sqlPassword') }
+        3 { @('adminUser','adminPassword','reportingUser','reportingPassword') }
+        4 { @('reportServerUrl','clientVirtualizationFilter') }
+        5 { @('recordingHosts','recordingUser','recordingPassword') }
+        default { @() }
+    }
+
+    foreach ($field in $stepFields) {
+        if ($errorMap.ContainsKey($field)) { return $false }
+    }
+    return $true
+}
+
+function Move-HttpWizardStep {
+    param([int]$Delta)
+
+    if ($Delta -gt 0 -and -not (Test-HttpWizardStepValid -Step $script:HttpWizardCurrentStep)) {
+        Add-LogEntry "HTTP wizard step $($script:HttpWizardCurrentStep) has validation issues. Resolve highlighted fields first." 'WARN'
+        return
+    }
+    Set-HttpWizardStep -Step ($script:HttpWizardCurrentStep + $Delta)
+}
+
+function Apply-HttpConfigProfile {
+    param([string]$ProfileName)
+
+    $hostHint = if (-not [string]::IsNullOrWhiteSpace($tbHttpHostName.Text)) { $tbHttpHostName.Text.Trim() } else { $env:COMPUTERNAME }
+    if ([string]::IsNullOrWhiteSpace($hostHint)) { $hostHint = 'localhost' }
+
+    $script:HttpHostEndpoints.Clear()
+    $script:HttpRecordingEndpoints.Clear()
+
+    switch ($ProfileName) {
+        'Single-host local lab' {
+            $script:HttpHostEndpoints.Add('localhost:8088')
+            $script:HttpHostEndpoints.Add('localhost')
+            $cbHttpSqlIntegrated.IsChecked = $true
+            $tbHttpSqlServer.Text = 'localhost'
+            $tbHttpSqlCatalog.Text = '{0}_{1}'
+            $tbHttpAdminUser.Text = 'DefaultAdmin'
+            $tbHttpReportingUser.Text = "$env:USERDOMAIN\$env:USERNAME"
+            $tbHttpReportServerUrl.Text = 'http://localhost/ReportServer'
+            $cbHttpAddAgentReactivation.IsChecked = $true
+            $cbHttpAgentReactivationValue.IsChecked = $false
+            $cbHttpAddClientVirtualizationFilter.IsChecked = $true
+            $tbHttpClientVirtualizationFilter.Text = '.+'
+            $tbHttpRecordingUser.Text = ''
+            $pbHttpRecordingPassword.Password = ''
+        }
+        'Production starter' {
+            $script:HttpHostEndpoints.Add("$hostHint`:8088")
+            $script:HttpHostEndpoints.Add($hostHint)
+            $cbHttpSqlIntegrated.IsChecked = $true
+            $tbHttpSqlServer.Text = 'localhost'
+            $tbHttpSqlCatalog.Text = '{0}_{1}'
+            $tbHttpAdminUser.Text = 'DefaultAdmin'
+            $tbHttpReportingUser.Text = "$env:USERDOMAIN\reporting"
+            $tbHttpReportServerUrl.Text = 'http://localhost/ReportServer'
+            $cbHttpAddAgentReactivation.IsChecked = $true
+            $cbHttpAgentReactivationValue.IsChecked = $true
+            $cbHttpAddClientVirtualizationFilter.IsChecked = $true
+            $tbHttpClientVirtualizationFilter.Text = '.+'
+            $tbHttpRecordingUser.Text = ''
+            $pbHttpRecordingPassword.Password = ''
+        }
+        'Production + recording' {
+            $script:HttpHostEndpoints.Add("$hostHint`:8088")
+            $script:HttpHostEndpoints.Add($hostHint)
+            $cbHttpSqlIntegrated.IsChecked = $true
+            $tbHttpSqlServer.Text = 'localhost'
+            $tbHttpSqlCatalog.Text = '{0}_{1}'
+            $tbHttpAdminUser.Text = 'DefaultAdmin'
+            $tbHttpReportingUser.Text = "$env:USERDOMAIN\reporting"
+            $tbHttpReportServerUrl.Text = 'http://localhost/ReportServer'
+            $cbHttpAddAgentReactivation.IsChecked = $true
+            $cbHttpAgentReactivationValue.IsChecked = $true
+            $cbHttpAddClientVirtualizationFilter.IsChecked = $true
+            $tbHttpClientVirtualizationFilter.Text = '.+'
+            $script:HttpRecordingEndpoints.Add('recordinghost:21/FOLDER1')
+            $tbHttpRecordingUser.Text = 'recording'
+            $pbHttpRecordingPassword.Password = ''
+        }
+        default {
+            $script:HttpHostEndpoints.Add('localhost:8088')
+            $script:HttpHostEndpoints.Add('localhost')
+            $cbHttpSqlIntegrated.IsChecked = $true
+            $tbHttpSqlServer.Text = 'localhost'
+            $tbHttpSqlCatalog.Text = '{0}_{1}'
+            $tbHttpAdminUser.Text = 'DefaultAdmin'
+            $tbHttpReportingUser.Text = ''
+            $tbHttpReportServerUrl.Text = 'http://localhost/ReportServer'
+            $cbHttpAddAgentReactivation.IsChecked = $true
+            $cbHttpAgentReactivationValue.IsChecked = $false
+            $cbHttpAddClientVirtualizationFilter.IsChecked = $true
+            $tbHttpClientVirtualizationFilter.Text = '.+'
+            $tbHttpRecordingUser.Text = ''
+            $pbHttpRecordingPassword.Password = ''
+        }
+    }
+
+    Update-HttpConfigUiState
+    Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null
+    Set-HttpWizardStep -Step 1
+    Add-LogEntry "HTTP.Config profile applied: $ProfileName" 'CYAN'
 }
 
 function Add-PlanItem {
@@ -3052,6 +3291,48 @@ $btnHttpValidate.Add_Click({
 
 $btnHttpPreview.Add_Click({ Show-HttpConfigPreview })
 
+$btnHttpApplyProfile.Add_Click({
+    Apply-HttpConfigProfile -ProfileName (Get-HttpConfigProfileName)
+})
+
+$btnHttpPrevStep.Add_Click({ Move-HttpWizardStep -Delta -1 })
+$btnHttpNextStep.Add_Click({
+    if ($script:HttpWizardCurrentStep -ge 5) {
+        $validation = Validate-HttpConfigSettings -ShowInlineErrors $true
+        if ($validation.IsValid) {
+            Add-LogEntry 'HTTP.Config wizard completed and validated.' 'OK'
+        } else {
+            Add-LogEntry "HTTP.Config wizard completed with $($validation.Errors.Count) field(s) needing attention." 'WARN'
+        }
+        return
+    }
+    Move-HttpWizardStep -Delta 1
+})
+
+$btnHttpStep1.Add_Click({ Set-HttpWizardStep -Step 1 })
+$btnHttpStep2.Add_Click({
+    if ($script:HttpWizardCurrentStep -lt 2 -and -not (Test-HttpWizardStepValid -Step 1)) { return }
+    Set-HttpWizardStep -Step 2
+})
+$btnHttpStep3.Add_Click({
+    for ($s = $script:HttpWizardCurrentStep; $s -lt 3; $s++) {
+        if (-not (Test-HttpWizardStepValid -Step $s)) { return }
+    }
+    Set-HttpWizardStep -Step 3
+})
+$btnHttpStep4.Add_Click({
+    for ($s = $script:HttpWizardCurrentStep; $s -lt 4; $s++) {
+        if (-not (Test-HttpWizardStepValid -Step $s)) { return }
+    }
+    Set-HttpWizardStep -Step 4
+})
+$btnHttpStep5.Add_Click({
+    for ($s = $script:HttpWizardCurrentStep; $s -lt 5; $s++) {
+        if (-not (Test-HttpWizardStepValid -Step $s)) { return }
+    }
+    Set-HttpWizardStep -Step 5
+})
+
 $btnHttpAddHostEndpoint.Add_Click({
     Add-HttpHostEndpoint -EndpointHost $tbHttpHostName.Text -EndpointPort $tbHttpHostPort.Text
     $tbHttpHostName.Text = ''
@@ -3104,15 +3385,9 @@ $btnForceKillServiceProcess.Add_Click({
 })
 
 $btnQuickStartService.Add_Click({
-    $serviceName = $tbServiceName.Text.Trim()
-    if ([string]::IsNullOrWhiteSpace($serviceName)) { $serviceName = 'crappserver' }
-    try {
-        Start-Service -Name $serviceName -ErrorAction Stop
-        Add-LogEntry "Start service requested for '$serviceName'." 'OK'
-    } catch {
-        Add-LogEntry "Start service failed for '$serviceName': $_" 'ERROR'
-    }
-    Update-ServiceStatus
+    Add-LogEntry '==== QUICK START SERVICE ====' 'HEADER'
+    Set-Status 'Starting service...' 0
+    Start-NixxisJob $sbStartService 'Quick Start Service'
 })
 
 $btnGeneratePlan.Add_Click({ Build-ExecutionPlan })
@@ -3208,6 +3483,7 @@ Update-RunDirLabel
 Update-OperationModeUI
 Update-SourceModeUI
 Update-HttpConfigUiState
+Set-HttpWizardStep -Step 1
 Validate-HttpConfigSettings -ShowInlineErrors $true | Out-Null
 Add-LogEntry "NCS Installer / Updater ready (v$script:AppVersion)." 'HEADER'
 Add-LogEntry "User: $env:USERNAME  |  Host: $env:COMPUTERNAME" 'GRAY'
